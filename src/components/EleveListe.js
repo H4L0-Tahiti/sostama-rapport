@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {withStyles} from 'material-ui/styles';
+import Style from '../decoration/Style'
 
 import List, {ListItem, ListItemText, ListItemSecondaryAction} from 'material-ui/List';
 import TextField from 'material-ui/TextField';
@@ -9,16 +11,43 @@ import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} fr
 import Button from 'material-ui/Button';
 import IconButton from 'material-ui/IconButton';
 import DeleteIcon from 'material-ui-icons/Delete';
+import Grid from 'material-ui/Grid';
+
+import {Route, Switch, Link, HashRouter as Router} from "react-router-dom";
 
 import EleveRapport from './EleveRapport'
-import Grid from 'material-ui/Grid';
+
+class DeleteDialog extends Component {
+    render() {
+        return (
+            <Dialog
+                id={"dialog-delete-" + this.props.eleve.id}
+                open={this.props.open}
+                onClose={this.props.onClose}>
+                <DialogTitle>{"Supprimer " + this.props.eleve.nom + " " + this.props.eleve.prenom + "?"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Etes vous sûr de vouloir supprimer cette élève de la base de données ?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={this.props.onClose} color="primary" autoFocus>
+                        Annuler
+                    </Button>
+                    <Button onClick={this.props.deleteEleve} color="primary">
+                        Supprimer
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        )
+    }
+}
 
 export class EleveItem extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            eleve: props.eleve,
             rapportopen: false,
             deleteopen: false
         }
@@ -26,77 +55,57 @@ export class EleveItem extends Component {
     };
 
     /**RAPPORT handlers */
-    handleRapportOpen = () => { //utilise pou affiche la fiche élève
+    _rapportOpen = () => { //utilise pou affiche la fiche élève
         this.setState({rapportopen: true});
     };
 
-    handleRapportClose = () => {
+    _rapportClose = () => {
         this.setState({rapportopen: false});
     };
 
     /** DELETE handlers */
-    handleDeleteOpen = () => {
+    _deleteOpen = () => {
         this.setState({deleteopen: true});
 
     };
-    handleDeleteClose = () => {
+    _deleteClose = () => {
         this.setState({deleteopen: false});
     }
 
-    handleDeleteEleve = e => {
+    _deleteEleve = e => {
         this.setState({deleteopen: false});
         this
             .props
-            .deleteeleve(this.state.eleve)/** > EleveList */
+            .deleteeleve(this.props.eleve)/** > EleveList */
     };
     /**RENDER */
     render() {
-
+        const {eleve} = this.props;
         return (
             <div>
-                <ListItem
-                    button
-                    onClick={this.handleRapportOpen}
-                    disabled={this.state.rapportopen}>
-                    <ListItemText primary={this.state.eleve.nom + " " + this.state.eleve.prenom}/>
+                <ListItem button onClick={this._rapportOpen} disabled={this.state.rapportopen}>
+                    <ListItemText primary={eleve.nom + " " + eleve.prenom}/>
                     <ListItemSecondaryAction>
-                        <IconButton size="small" onClick={this.handleDeleteOpen}>
+                        <IconButton size="small" onClick={this._deleteOpen}>
                             <DeleteIcon/>
                         </IconButton>
-                        {this.state.deleteopen && <Dialog
-                            id={"dialog-delete-" + this.state.eleve.id}
+                        {this.state.deleteopen && <DeleteDialog
                             open={this.state.deleteopen}
-                            onClose={this.handleDeleteClose}>
-                            <DialogTitle id="alert-dialog-title">{"Supprimer " + this.state.eleve.nom + " " + this.state.eleve.prenom + "?"}</DialogTitle>
-                            <DialogContent>
-                                <DialogContentText id="alert-dialog-description">
-                                    Etes vous sûr de vouloir supprimer cette élève de la base de données ?
-                                </DialogContentText>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button onClick={this.handleDeleteClose} color="primary" autoFocus>
-                                    Annuler
-                                </Button>
-                                <Button onClick={this.handleDeleteEleve} color="primary">
-                                    Supprimer
-                                </Button>
-                            </DialogActions>
-                        </Dialog>}
+                            eleve={eleve}
+                            onClose={this._deleteClose}
+                            deleteEleve={this._deleteEleve}/>}
                     </ListItemSecondaryAction>
                 </ListItem>
                 {this.state.rapportopen && <EleveRapport
-                    eleve={this.state.eleve}
                     open={this.state.rapportopen}
-                    onClose={this.handleRapportClose/*callbaaaaaack*/}/>}
+                    eleve={eleve}
+                    onClose={this._rapportClose}/>}
             </div>
         )
     }
-
 }
 
-export default class EleveList extends Component {
-
-    //fuse
+export default class EleveList extends Component { //fuse
     fuseoptions = {
         keys: [
             'nom', 'prenom'
@@ -169,6 +178,7 @@ export default class EleveList extends Component {
         return (
             <div>
                 <Grid container direction="column" alignItems="stretch">
+
                     <DialogTitle>Liste des élèves</DialogTitle>
                     <DialogContent>
                         <FormGroup>
@@ -177,16 +187,22 @@ export default class EleveList extends Component {
                                 type="search"
                                 placeholder="Recherche..."
                                 onChange={this.handleChange}/>
-                            <List>
-                                {this
-                                    .props
-                                    .liste
-                                    .map((eleve) => <div key={"elevedv-" + eleve.id}>{this
-                                            .state
-                                            .visibleids
-                                            .has(eleve.id + "") && (<EleveItem key={eleve.id} eleve={eleve} deleteeleve={this.handleDeleteEleve}/>)}
-                                    </div>)}
-                            </List>
+                            <Router>
+                                <List>
+                                    {this
+                                        .props
+                                        .liste
+                                        .map((eleve) => <div key={"elevediv-" + eleve.id}>{this
+                                                .state
+                                                .visibleids
+                                                .has(eleve.id + "") && (<EleveItem
+                                                    key={"eleve-" + eleve.id}
+                                                    eleve={eleve}
+                                                    deleteeleve={this.handleDeleteEleve}/>)}
+
+                                        </div>)}
+                                </List>
+                            </Router>
                         </FormGroup>
                     </DialogContent>
                 </Grid>
