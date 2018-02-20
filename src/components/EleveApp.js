@@ -9,6 +9,7 @@ import AppBar from 'material-ui/AppBar/AppBar';
 import Toolbar from 'material-ui/Toolbar/Toolbar';
 import Typography from 'material-ui/Typography/Typography';
 import MenuIcon from 'material-ui-icons/Menu';
+import AccountCircle from 'material-ui-icons/AccountCircle';
 import Menu from 'material-ui/Menu/Menu';
 import MenuItem from 'material-ui/Menu/MenuItem';
 import Divider from 'material-ui/Divider';
@@ -17,7 +18,9 @@ import Paper from 'material-ui/Paper';
 
 import EleveAdd from './EleveAdd'
 import EleveList from "./EleveListe"
+import Login from "./Login"
 import About from './About'
+import Profile from './Profile'
 
 import Grid from 'material-ui/Grid';
 import Reboot from 'material-ui/Reboot';
@@ -25,7 +28,7 @@ import List, {ListItem, ListItemText, ListItemSecondaryAction} from 'material-ui
 
 import {Route, Switch, Link, HashRouter as Router} from "react-router-dom";
 
-const firedev = false;
+const usefire = false;
 
 const fakelist = [
     {
@@ -68,13 +71,18 @@ class EleveApp extends Component {
             /** la liste des eleves */
             liste: fakelist,
             /* firebase */
-            elevesref: null
+            elevesref: null,
+            anchormenuappbar: null,
+
+            /** authentificaction */
+            auth: false,
+            user: null
         }
 
     };
 
     componentWillMount() {
-        if (firedev) {
+        if (usefire) {
             var listedb = this.state.liste;
 
             var elevesref = this
@@ -107,7 +115,7 @@ class EleveApp extends Component {
         if (e !== null) { //check si on a un eleve à ajouter
 
             var lol = this.state.liste
-            if (firedev) {
+            if (usefire) {
                 /**update sur firebase + recupération de l'id*/
                 this
                     .state
@@ -133,7 +141,7 @@ class EleveApp extends Component {
         /**on retire eleve-id de firebaseref et de la liste */
         if (e !== null) {
             var lol = this.state.liste
-            if (firedev) {
+            if (usefire) {
                 this
                     .state
                     .elevesref
@@ -154,8 +162,40 @@ class EleveApp extends Component {
         };
 
     }
+
+    _switchAuth = () => {
+        if (this.state.auth) {
+            this.setState({auth: false})
+        } else {
+            this.setState({auth: true})
+        }
+    }
+
+    _login = () => {
+        if (usefire) {
+            /** ici on devrait une authntification avec firebase */
+        } else {
+            this.setState({auth: true})
+        }
+    }
+
+    _logout = () => {
+        this.setState({auth: false})
+    }
+
+    _openmenuappbar = e => {
+        this.setState({anchormenuappbar: e.currentTarget});
+    }
+
+    _closemenuappbar = () => {
+        this.setState({anchormenuappbar: null});
+    };
+
     render() {
         const {classes} = this.props;
+        const {auth, anchormenuappbar} = this.state;
+        const openmenuappbar = Boolean(anchormenuappbar);
+
         return (
             <div>
                 <Router>
@@ -165,29 +205,18 @@ class EleveApp extends Component {
                                 <Paper>
                                     <List>
                                         <div className={classes.appbarh}/><Divider/>
-                                        <Link
-                                            to="/"
-                                            style={{
-                                            textDecoration: 'none'
-                                        }}>
+                                        <Link to="/" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Liste"/>
                                             </ListItem>
                                         </Link>
-                                        <Link
-                                            to="/add"
-                                            style={{
-                                            textDecoration: 'none'
-                                        }}>
+                                        {auth && <Link to="/add" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Ajouter Elève"/>
                                             </ListItem>
-                                        </Link><Divider/>
-                                        <Link
-                                            to="/about"
-                                            style={{
-                                            textDecoration: 'none'
-                                        }}>
+                                        </Link>}
+                                        <Divider/>
+                                        <Link to="/about" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="A Propos"/>
                                             </ListItem>
@@ -199,15 +228,51 @@ class EleveApp extends Component {
                                 <AppBar position="static" color="primary">
                                     <Toolbar>
                                         <Grid container direction="row" justify="center" alignItems="center">
+
                                             <Grid item xs={11}>
                                                 <Typography variant="title" color="inherit" className={classes.textcenter}>
                                                     SOSTAMA
                                                 </Typography>
                                             </Grid>
                                             <Grid item xs={1}>
-                                                <Button color="inherit">Login</Button>
-                                            </Grid>
+                                                {auth
+                                                    ? <div>
+                                                            <IconButton
+                                                                aria-owns={openmenuappbar
+                                                                ? 'menu-appbar'
+                                                                : null}
+                                                                aria-haspopup="true"
+                                                                onClick={this._openmenuappbar}
+                                                                color="inherit">
+                                                                <AccountCircle/>
+                                                            </IconButton>
+                                                            <Menu
+                                                                id="menu-appbar"
+                                                                anchorEl={anchormenuappbar}
+                                                                anchorOrigin={{
+                                                                vertical: 'top',
+                                                                horizontal: 'right'
+                                                            }}
+                                                                transformOrigin={{
+                                                                vertical: 'top',
+                                                                horizontal: 'right'
+                                                            }}
+                                                                open={openmenuappbar}
+                                                                onClose={this._closemenuappbar}
+                                                                onClick={this._closemenuappbar}>
+                                                                <Link to="/profile" className={classes.noUnderline}>
+                                                                    <MenuItem>Profile</MenuItem>
+                                                                </Link>
+                                                                <Link to="/" className={classes.noUnderline}>
+                                                                    <MenuItem onClick={this._logout}>Logout</MenuItem>
+                                                                </Link>
 
+                                                            </Menu>
+                                                        </div>
+                                                    : <Link to="/login" className={classes.noUnderline}>
+                                                        <Button variant="raised" color="inherit">Login</Button>
+                                                    </Link>}
+                                            </Grid>
                                         </Grid>
                                     </Toolbar>
                                 </AppBar>
@@ -216,8 +281,15 @@ class EleveApp extends Component {
                                         <Route
                                             path="/"
                                             exact={true}
-                                            render={(props) => (<EleveList liste={this.state.liste} deleteeleve={this._deleteEleve} {...props}/>)}/>
-                                        <Route path="/add" render={() => (<EleveAdd ajout={this._ajoutEleve}/>)}/>
+                                            render={(props) => (<EleveList
+                                            liste={this.state.liste}
+                                            deleteeleve={this._deleteEleve}
+                                            auth={this.state.auth}/>)}/>
+                                        <Route
+                                            path="/add"
+                                            render={() => (<EleveAdd ajout={this._ajoutEleve} auth={auth}/>)}/>
+                                        <Route path="/login" render={() => (<Login login={this._login} auth={auth}/>)}/>
+                                        <Route path="/profile" render={() => (<Profile auth={auth}/>)}/>
                                         <Route path="/about" component={About}/>
                                     </Switch>
                                 </div>

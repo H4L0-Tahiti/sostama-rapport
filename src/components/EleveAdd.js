@@ -15,6 +15,8 @@ import Save from 'material-ui-icons/Save';
 import Grid from 'material-ui/Grid';
 import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} from 'material-ui/Dialog';
 
+import {Redirect} from "react-router-dom";
+
 import Slide from 'material-ui/transitions/Slide';
 
 function Transition(props) {
@@ -77,9 +79,10 @@ class EleveAdd extends Component { //ajout eleve dasn le fichie
     }
 
     render() {
-        const {classes} = this.props
+        const {auth, classes} = this.props
         return (
             <div>
+                {!auth && <Redirect to="/"/>}
                 <Grid container direction="column" alignItems="stretch">
                     <DialogTitle>Ajouter un élève</DialogTitle>
                     <DialogContent>

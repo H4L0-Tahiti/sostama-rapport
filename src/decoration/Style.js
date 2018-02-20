@@ -32,6 +32,9 @@ const Style = theme => ({
     },
     textformat: {
         whiteSpace: 'pre-line'
+    },
+    noUnderline: {
+        textDecoration: 'none'
     }
 });
 

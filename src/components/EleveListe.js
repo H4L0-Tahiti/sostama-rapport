@@ -80,12 +80,12 @@ export class EleveItem extends Component {
     };
     /**RENDER */
     render() {
-        const {eleve} = this.props;
+        const {eleve,auth} = this.props;
         return (
             <div>
-                <ListItem button onClick={this._rapportOpen} disabled={this.state.rapportopen}>
+                <ListItem button onClick={this._rapportOpen}>
                     <ListItemText primary={eleve.nom + " " + eleve.prenom}/>
-                    <ListItemSecondaryAction>
+                    {auth && <ListItemSecondaryAction>
                         <IconButton size="small" onClick={this._deleteOpen}>
                             <DeleteIcon/>
                         </IconButton>
@@ -94,9 +94,9 @@ export class EleveItem extends Component {
                             eleve={eleve}
                             onClose={this._deleteClose}
                             deleteEleve={this._deleteEleve}/>}
-                    </ListItemSecondaryAction>
+                    </ListItemSecondaryAction>}
                 </ListItem>
-                {this.state.rapportopen && <EleveRapport
+                {auth && this.state.rapportopen && <EleveRapport
                     open={this.state.rapportopen}
                     eleve={eleve}
                     onClose={this._rapportClose}/>}
@@ -198,7 +198,8 @@ export default class EleveList extends Component { //fuse
                                                 .has(eleve.id + "") && (<EleveItem
                                                     key={"eleve-" + eleve.id}
                                                     eleve={eleve}
-                                                    deleteeleve={this.handleDeleteEleve}/>)}
+                                                    deleteeleve={this.handleDeleteEleve}
+                                                    auth={this.props.auth} />)}
 
                                         </div>)}
                                 </List>
