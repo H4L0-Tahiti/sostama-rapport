@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withStyles} from 'material-ui/styles';
-import Style from '../Style'
+import Style from '../decoration/Style'
 
 import Button from 'material-ui/Button';
 import IconButton from 'material-ui/IconButton';
@@ -13,13 +13,14 @@ import Menu from 'material-ui/Menu/Menu';
 import MenuItem from 'material-ui/Menu/MenuItem';
 import Divider from 'material-ui/Divider';
 
+import Paper from 'material-ui/Paper';
+
 import EleveAdd from './EleveAdd'
 import EleveList from "./EleveListe"
 import About from './About'
 
 import Grid from 'material-ui/Grid';
 import Reboot from 'material-ui/Reboot';
-import Drawer from 'material-ui/Drawer';
 import List, {ListItem, ListItemText, ListItemSecondaryAction} from 'material-ui/List';
 
 import {Route, Switch, Link, HashRouter as Router} from "react-router-dom";
@@ -37,8 +38,26 @@ const fakelist = [
         nom: "gruk",
         prenom: "alan",
         ddn: "25-65-1965"
+    }, {
+        id: "r7ve9rvr44d9r84e",
+        nom: "hulk",
+        prenom: "smash",
+        ddn: "31-04-1810"
+    }, {
+        id: "jy9trt9hth4f5d4",
+        nom: "thor",
+        prenom: "sonofodin",
+        ddn: "04-12-1456"
+    }, {
+        id: "vd6d5g1j4f5ddg",
+        nom: "iron",
+        prenom: "man",
+        ddn: "07-05-1955"
     }
 ]
+
+const GRID_DRAWER_WIDTH = 2;
+const GRID_APP_WIDTH = 12 - GRID_DRAWER_WIDTH;
 
 class EleveApp extends Component {
 
@@ -84,27 +103,7 @@ class EleveApp extends Component {
         }
     }
 
-    _menuOpen = e => {
-        //au lieu de gérer true ou false, on gère object ou null via Boolean
-        this.setState({anchormenu: e.currentTarget, menuopen: true});
-        console.log(e.currentTarget)
-
-    }
-
-    _menuClose = () => {
-        /** anchormenu null => Boolean(anchormenu) false */
-        this.setState({anchormenu: null})
-    }
-
-    _ajoutOpen = () => {
-        /*bug: setstate sur anchormenu : null fait perdre le focus de EleveAdd
-        cheat dans _ajoutEleve car EleveAdd est fullscreen, on verra pas la diff xD */
-        this.setState({ajoutopen: true});
-        console.log(this.state.ajoutopen)
-    }
-
     _ajoutEleve = e => {
-        this.setState({ajoutopen: false});
         if (e !== null) { //check si on a un eleve à ajouter
 
             var lol = this.state.liste
@@ -161,48 +160,45 @@ class EleveApp extends Component {
             <div>
                 <Router>
                     <div>
-                        <Grid container>
-                            <Grid item xs={2}>
-                                <List>
-                                    <div className={classes.appbarh}/><Divider/>
-                                    <Link
-                                        to="/"
-                                        style={{
-                                        textDecoration: 'none'
-                                    }}>
-                                        <ListItem button><ListItemText primary="Liste"/>
-                                        </ListItem>
-                                    </Link>
-                                    <Link
-                                        to="/add"
-                                        style={{
-                                        textDecoration: 'none'
-                                    }}>
-                                        <ListItem button onClick={this._ajoutOpen}>
-
-                                            <ListItemText primary="Ajouter Elève"/>
-
-                                        </ListItem>
-                                    </Link><Divider/>
-                                    <Link
-                                        to="/about"
-                                        style={{
-                                        textDecoration: 'none'
-                                    }}>
-                                        <ListItem button>
-                                            <ListItemText primary="A Propos"/>
-                                        </ListItem>
-                                    </Link>
-                                </List>
+                        <Grid container spacing={0}>
+                            <Grid item xs={GRID_DRAWER_WIDTH}>
+                                <Paper>
+                                    <List>
+                                        <div className={classes.appbarh}/><Divider/>
+                                        <Link
+                                            to="/"
+                                            style={{
+                                            textDecoration: 'none'
+                                        }}>
+                                            <ListItem button>
+                                                <ListItemText primary="Liste"/>
+                                            </ListItem>
+                                        </Link>
+                                        <Link
+                                            to="/add"
+                                            style={{
+                                            textDecoration: 'none'
+                                        }}>
+                                            <ListItem button>
+                                                <ListItemText primary="Ajouter Elève"/>
+                                            </ListItem>
+                                        </Link><Divider/>
+                                        <Link
+                                            to="/about"
+                                            style={{
+                                            textDecoration: 'none'
+                                        }}>
+                                            <ListItem button>
+                                                <ListItemText primary="A Propos"/>
+                                            </ListItem>
+                                        </Link>
+                                    </List>
+                                </Paper>
                             </Grid>
-                            <Grid item xs={10}>
+                            <Grid item xs={GRID_APP_WIDTH}>
                                 <AppBar position="static" color="primary">
                                     <Toolbar>
-                                        <Grid
-                                            container
-                                            direction="row"
-                                            justify="center"
-                                            alignItems="center">
+                                        <Grid container direction="row" justify="center" alignItems="center">
                                             <Grid item xs={11}>
                                                 <Typography variant="title" color="inherit" className={classes.textcenter}>
                                                     SOSTAMA
@@ -215,25 +211,15 @@ class EleveApp extends Component {
                                         </Grid>
                                     </Toolbar>
                                 </AppBar>
-                                <div
-                                    style={{
-                                    marginTop: 20
-                                }}>
-
-                                    <Grid container>
-                                        <Grid item xs/>
-                                        <Grid item xs={8}>
-                                            <Switch id="routes">
-                                                <Route
-                                                    path="/"
-                                                    exact={true}
-                                                    render={(props) => (<EleveList liste={this.state.liste} deleteeleve={this._deleteEleve} {...props}/>)}/>
-                                                <Route path="/add" render={() => (<EleveAdd ajout={this._ajoutEleve}/>)}/>
-                                                <Route path="/about" component={About}/>
-                                            </Switch>
-                                        </Grid>
-                                        <Grid item xs/>
-                                    </Grid>
+                                <div className={classes.space}>
+                                    <Switch id="routes">
+                                        <Route
+                                            path="/"
+                                            exact={true}
+                                            render={(props) => (<EleveList liste={this.state.liste} deleteeleve={this._deleteEleve} {...props}/>)}/>
+                                        <Route path="/add" render={() => (<EleveAdd ajout={this._ajoutEleve}/>)}/>
+                                        <Route path="/about" component={About}/>
+                                    </Switch>
                                 </div>
                             </Grid>
                         </Grid>

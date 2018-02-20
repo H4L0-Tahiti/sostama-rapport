@@ -1,14 +1,12 @@
 import React, {Component} from 'react';
 import './App.css';
 import 'typeface-roboto'
-import {withStyles} from 'material-ui/styles';
 
 import EleveApp from './components/EleveApp';
 
 import Reboot from 'material-ui/Reboot/Reboot';
 import Reactotron from 'reactotron-react-js'
 
-import Style from './Style'
 
 const firebase = require("firebase");
 // Required for side-effects

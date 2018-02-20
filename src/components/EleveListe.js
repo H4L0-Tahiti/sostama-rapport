@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+
 import List, {ListItem, ListItemText, ListItemSecondaryAction} from 'material-ui/List';
 import TextField from 'material-ui/TextField';
-import {FormControl} from 'material-ui/Form';
+import {FormControl, FormGroup} from 'material-ui/Form';
 import Fuse from 'fuse.js';
 import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} from 'material-ui/Dialog';
 import Button from 'material-ui/Button';
@@ -168,23 +169,26 @@ export default class EleveList extends Component {
         return (
             <div>
                 <Grid container direction="column" alignItems="stretch">
-                    <FormControl>
-                        <TextField
-                            id="recherche"
-                            type="search"
-                            placeholder="Recherche..."
-                            onChange={this.handleChange}/>
-                        <List>
-                            {this
-                                .props
-                                .liste
-                                .map((eleve) => <div key={"elevedv-" + eleve.id}>{this
-                                        .state
-                                        .visibleids
-                                        .has(eleve.id + "") && (<EleveItem key={eleve.id} eleve={eleve} deleteeleve={this.handleDeleteEleve}/>)}
-                                </div>)}
-                        </List>
-                    </FormControl>
+                    <DialogTitle>Liste des élèves</DialogTitle>
+                    <DialogContent>
+                        <FormGroup>
+                            <TextField
+                                id="recherche"
+                                type="search"
+                                placeholder="Recherche..."
+                                onChange={this.handleChange}/>
+                            <List>
+                                {this
+                                    .props
+                                    .liste
+                                    .map((eleve) => <div key={"elevedv-" + eleve.id}>{this
+                                            .state
+                                            .visibleids
+                                            .has(eleve.id + "") && (<EleveItem key={eleve.id} eleve={eleve} deleteeleve={this.handleDeleteEleve}/>)}
+                                    </div>)}
+                            </List>
+                        </FormGroup>
+                    </DialogContent>
                 </Grid>
             </div>
         );
