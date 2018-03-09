@@ -21,18 +21,14 @@ firebase.initializeApp({
   messagingSenderId: "484972558539"
 });
 
-
 //<img src={logo} className="App-logo" alt="logo"/>
 
 class App extends Component {
   constructor(props) {
     super(props);
-    
-    firebase.firestore();
-    firebase.auth();
-
+    firebase.auth()
     this.state = {
-      firebase: firebase,
+      firebase: firebase
     };
     Reactotron.log('frebase up')
   }

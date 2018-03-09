@@ -80,12 +80,12 @@ export class EleveItem extends Component {
     };
     /**RENDER */
     render() {
-        const {eleve,auth} = this.props;
+        const {eleve,user} = this.props;
         return (
             <div>
                 <ListItem button onClick={this._rapportOpen}>
                     <ListItemText primary={eleve.nom + " " + eleve.prenom}/>
-                    {auth && <ListItemSecondaryAction>
+                    {!!user && (user.statut=="admin") && <ListItemSecondaryAction>
                         <IconButton size="small" onClick={this._deleteOpen}>
                             <DeleteIcon/>
                         </IconButton>
@@ -96,7 +96,7 @@ export class EleveItem extends Component {
                             deleteEleve={this._deleteEleve}/>}
                     </ListItemSecondaryAction>}
                 </ListItem>
-                {auth && this.state.rapportopen && <EleveRapport
+                {!!user && ((user.statut=="admin")||(user.statut=="prof")) && this.state.rapportopen && <EleveRapport
                     open={this.state.rapportopen}
                     eleve={eleve}
                     onClose={this._rapportClose}/>}
@@ -175,6 +175,7 @@ export default class EleveList extends Component { //fuse
 
     //RENDER
     render() {
+        const {user}=this.props
         return (
             <div>
                 <Grid container direction="column" alignItems="stretch">
@@ -199,7 +200,7 @@ export default class EleveList extends Component { //fuse
                                                     key={"eleve-" + eleve.id}
                                                     eleve={eleve}
                                                     deleteeleve={this.handleDeleteEleve}
-                                                    auth={this.props.auth} />)}
+                                                    user={user} />)}
 
                                         </div>)}
                                 </List>

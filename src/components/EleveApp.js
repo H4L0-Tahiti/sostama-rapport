@@ -16,6 +16,7 @@ import Divider from 'material-ui/Divider';
 
 import Paper from 'material-ui/Paper';
 
+import ProfAdd from './ProfAdd'
 import EleveAdd from './EleveAdd'
 import EleveList from "./EleveListe"
 import Login from "./Login"
@@ -28,7 +29,7 @@ import List, {ListItem, ListItemText, ListItemSecondaryAction} from 'material-ui
 
 import {Route, Switch, Link, HashRouter as Router} from "react-router-dom";
 
-const usefire = false;
+const usefire = true;
 
 const fakelist = [
     {
@@ -68,15 +69,19 @@ class EleveApp extends Component {
         super(props);
 
         this.state = {
+            firestore: props
+                .firebase
+                .firestore(),
+            fireauth: props
+                .firebase
+                .auth(),
             /** la liste des eleves */
             liste: fakelist,
-            /* firebase */
-            elevesref: null,
+
             anchormenuappbar: null,
 
             /** authentificaction gérer dans didmount*/
-            //auth:auth
-            //user:user
+            //auth:auth user:user
         }
 
     };
@@ -87,9 +92,14 @@ class EleveApp extends Component {
 
             //recuperation de la reference de la liste d'eleves dans firebase
             var elevesref = this
-                .props
-                .firebase
+                .state
+                .firestore
                 .collection('eleves');
+
+            var usersref = this
+                .state
+                .firestore
+                .collection('users');
 
             elevesref
                 .get()
@@ -104,23 +114,47 @@ class EleveApp extends Component {
                         }
                         listedb.push(e);
                     });
-                    this.setState({liste: listedb, elevesref: elevesref});
                 })
                 .catch((err) => {
                     console.log('Error getting documents', err);
+                })
+                .then(() => {
+                    this.setState({liste: listedb});
                 })
         }
     }
 
     componentDidMount() {
+
+        //check si on est signined ou non pour référence : auth = !!user,
         this
-            .props
-            .firebase
-            .auth()
+            .state
+            .fireauth
             .onAuthStateChanged((user) => {
                 if (user) {
-                    // User is signed in.
-                    this.setState({auth: true, user: user})
+                    // User is signed in. on va chercher le statut du user
+                    this
+                        .state
+                        .firestore
+                        .collection('users')
+                        .doc(user.uid)
+                        .get()
+                        .then((doc) => {
+                            if (!doc.exists) {
+                                console.log('No such document!');
+                            } else {
+                                // user signined + entré users dans firestore, on update user avec le statut
+                                user.statut = doc
+                                    .data()
+                                    .statut;
+                                console.log(user.statut)
+                            }
+                        })
+                        .catch(err => {
+                            console.log('Error getting document', err);
+                        })
+                        .then(() => this.setState({auth: true, user: user}))
+
                 } else {
                     // No user is signed in.
                     this.setState({auth: false, user: null})
@@ -136,7 +170,8 @@ class EleveApp extends Component {
                 /**update sur firebase + recupération de l'id*/
                 this
                     .state
-                    .elevesref
+                    .firestore
+                    .collection('eleves')
                     .add(e)
                     .then((doc) => {
                         e.id = doc.id;
@@ -161,7 +196,8 @@ class EleveApp extends Component {
             if (usefire) {
                 this
                     .state
-                    .elevesref
+                    .firestore
+                    .collection('eleves')
                     .doc(e.id)
                     .delete()/** delete de eleve de firestore */
                     .then(() => {
@@ -189,28 +225,26 @@ class EleveApp extends Component {
     }
 
     _login = (email, password) => {
-        if (true) {
+        if (usefire) {
             /** ici on devrait une authntification avec firebase */
             this
-                .props
-                .firebase
-                .auth()
+                .state
+                .fireauth
                 .signInWithEmailAndPassword(email, password)
                 .catch(function (error) {
-                    // Handle Errors here.
-                    console.log(`erreur login firebase`)
-                    // ...
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    alert(errorMessage);
                 });
         }
     }
 
     _logout = () => {
-        if (true) {
+        if (usefire) {
             /** ici on devrait une authntification avec firebase */
             this
-                .props
-                .firebase
-                .auth()
+                .state
+                .fireauth
                 .signOut()
                 .catch(function (error) {
                     // Handle Errors here.
@@ -241,15 +275,32 @@ class EleveApp extends Component {
                             <Grid item xs={GRID_DRAWER_WIDTH}>
                                 <Paper>
                                     <List>
-                                        <div className={classes.appbarh}/><Divider/>
+                                        <div className={classes.appbarh}>
+                                            {auth && <Typography
+                                                variant="subheadline"
+                                                color="inherit"
+                                                className={classes.textcenter}>
+                                                {`${user.statut}`}
+                                            </Typography>}
+                                        </div><Divider/>
                                         <Link to="/" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Liste"/>
                                             </ListItem>
                                         </Link>
-                                        {auth && <Link to="/add" className={classes.noUnderline}>
+                                        {auth && (user.statut == "admin" || user.statut == "prof") && <Link to="/rapports" className={classes.noUnderline}>
+                                            <ListItem button>
+                                                <ListItemText primary="Rapports"/>
+                                            </ListItem>
+                                        </Link>}
+                                        <Divider/> {auth && (user.statut == "admin" || user.statut == "prof") && <Link to="/addeleve" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Ajouter Elève"/>
+                                            </ListItem>
+                                        </Link>}
+                                        {auth && user.statut == "admin" && <Link to="/addprof" className={classes.noUnderline}>
+                                            <ListItem button>
+                                                <ListItemText primary="Ajouter Professeur"/>
                                             </ListItem>
                                         </Link>}
                                         <Divider/>
@@ -321,10 +372,13 @@ class EleveApp extends Component {
                                             render={(props) => (<EleveList
                                             liste={this.state.liste}
                                             deleteeleve={this._deleteEleve}
-                                            auth={this.state.auth}/>)}/>
+                                            user={user}/>)}/>
                                         <Route
-                                            path="/add"
+                                            path="/addeleve"
                                             render={() => (<EleveAdd ajout={this._ajoutEleve} auth={auth}/>)}/>
+                                        <Route
+                                            path="/addprof"
+                                            render={() => (<ProfAdd ajout={this._ajoutEleve} auth={auth}/>)}/>
                                         <Route
                                             path="/login"
                                             render={() => (<Login firebase={this.props.firebase} login={this._login} auth={auth}/>)}/>
