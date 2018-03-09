@@ -74,9 +74,9 @@ class EleveApp extends Component {
             elevesref: null,
             anchormenuappbar: null,
 
-            /** authentificaction */
-            auth: false,
-            user: null
+            /** authentificaction gérer dans didmount*/
+            //auth:auth
+            //user:user
         }
 
     };
@@ -85,9 +85,10 @@ class EleveApp extends Component {
         if (usefire) {
             var listedb = this.state.liste;
 
+            //recuperation de la reference de la liste d'eleves dans firebase
             var elevesref = this
                 .props
-                .db
+                .firebase
                 .collection('eleves');
 
             elevesref
@@ -109,6 +110,22 @@ class EleveApp extends Component {
                     console.log('Error getting documents', err);
                 })
         }
+    }
+
+    componentDidMount() {
+        this
+            .props
+            .firebase
+            .auth()
+            .onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in.
+                    this.setState({auth: true, user: user})
+                } else {
+                    // No user is signed in.
+                    this.setState({auth: false, user: null})
+                }
+            });
     }
 
     _ajoutEleve = e => {
@@ -171,16 +188,36 @@ class EleveApp extends Component {
         }
     }
 
-    _login = () => {
-        if (usefire) {
+    _login = (email, password) => {
+        if (true) {
             /** ici on devrait une authntification avec firebase */
-        } else {
-            this.setState({auth: true})
+            this
+                .props
+                .firebase
+                .auth()
+                .signInWithEmailAndPassword(email, password)
+                .catch(function (error) {
+                    // Handle Errors here.
+                    console.log(`erreur login firebase`)
+                    // ...
+                });
         }
     }
 
     _logout = () => {
-        this.setState({auth: false})
+        if (true) {
+            /** ici on devrait une authntification avec firebase */
+            this
+                .props
+                .firebase
+                .auth()
+                .signOut()
+                .catch(function (error) {
+                    // Handle Errors here.
+                    console.log(`erreur login firebase`)
+                    // ...
+                });
+        }
     }
 
     _openmenuappbar = e => {
@@ -193,7 +230,7 @@ class EleveApp extends Component {
 
     render() {
         const {classes} = this.props;
-        const {auth, anchormenuappbar} = this.state;
+        const {auth, user, anchormenuappbar} = this.state;
         const openmenuappbar = Boolean(anchormenuappbar);
 
         return (
@@ -288,8 +325,10 @@ class EleveApp extends Component {
                                         <Route
                                             path="/add"
                                             render={() => (<EleveAdd ajout={this._ajoutEleve} auth={auth}/>)}/>
-                                        <Route path="/login" render={() => (<Login login={this._login} auth={auth}/>)}/>
-                                        <Route path="/profile" render={() => (<Profile auth={auth}/>)}/>
+                                        <Route
+                                            path="/login"
+                                            render={() => (<Login firebase={this.props.firebase} login={this._login} auth={auth}/>)}/>
+                                        <Route path="/profile" render={() => (<Profile user={user}/>)}/>
                                         <Route path="/about" component={About}/>
                                     </Switch>
                                 </div>

@@ -15,14 +15,14 @@ import {Redirect} from "react-router-dom";
 class Profile extends Component {
 
     render() {
-        const {auth,classes} = this.props;
+        const {user,classes} = this.props;
         return (
             <div>
-            {!auth && <Redirect to="/"/>}
+            {!user && <Redirect to="/"/>}
                 <Grid container direction="column" alignItems="stretch">
                     <DialogTitle>Profil Utilisateur</DialogTitle>
                     <DialogContent>
-                        <DialogContentText className={classes.textformat}>profil de l'utilisateur actuel</DialogContentText>                        
+                        <DialogContentText className={classes.textformat}>{`Profil de l'utilisateur actuel : ${user.email}`}</DialogContentText>                        
                     </DialogContent>
                 </Grid>
             </div>

@@ -7,7 +7,6 @@ import EleveApp from './components/EleveApp';
 import Reboot from 'material-ui/Reboot/Reboot';
 import Reactotron from 'reactotron-react-js'
 
-
 const firebase = require("firebase");
 // Required for side-effects
 require("firebase/firestore");
@@ -23,15 +22,17 @@ firebase.initializeApp({
 });
 
 
-
 //<img src={logo} className="App-logo" alt="logo"/>
 
 class App extends Component {
   constructor(props) {
     super(props);
     
+    firebase.firestore();
+    firebase.auth();
+
     this.state = {
-      fire: firebase.firestore()
+      firebase: firebase,
     };
     Reactotron.log('frebase up')
   }
@@ -39,7 +40,7 @@ class App extends Component {
     return (
       <div>
         <Reboot/>
-        <EleveApp db={this.state.fire}/>
+        <EleveApp firebase={this.state.firebase}/>
       </div>
     );
   }
