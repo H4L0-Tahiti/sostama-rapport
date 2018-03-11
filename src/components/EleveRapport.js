@@ -19,14 +19,14 @@ function Transition(props) {
     return <Slide direction="left" {...props}/>;
 }
 
-
 class EleveRapport extends Component {
 
     constructor(props) {
         super(props);
 
         this.state = {
-            eleve: props.eleve
+            rapport: "",
+            require: ""
         }
     }
 
@@ -37,43 +37,72 @@ class EleveRapport extends Component {
     };
 
     _mail = () => {
-        console.log("yeee ça mail");
+        //envoyerle rapport dans firebase
+        const {rapport} = this.state
+        const {firebase,user,eleve} = this.props
+
+        if (rapport === "") {
+            this.setState({require: "Veuillez remplir les champs requis."});
+        } else {
+            //construction du json
+            let r={};
+            r.texte=rapport;
+            r.date = this.props.firebase.firestore.FieldValue.serverTimestamp();
+            r.eleve=eleve.id;
+
+            firebase.firestore()
+                .collection('rapports')
+                .doc(user.uid)
+                .collection('messages')
+                .add(r)
+                
+
         this
             .props
             .onClose()
+        }
+
     };
 
+    handleRapport = e => {
+        this.setState({rapport: e.target.value})
+    }
     render() {
-        const {classes} = this.props
-        var e = this.state.eleve;
+        const {eleve, classes, user} = this.props
         return (
             <div>
-                <Dialog open={this.props.open} onClose={this.handleClose} fullScreen={true} transition={Transition}>
+                <Dialog
+                    open={this.props.open}
+                    onClose={this.handleClose}
+                    fullScreen={true}
+                    transition={Transition}>
                     <AppBar>
                         <Toolbar>
                             <IconButton onClick={this._annuler} aria-label="Close">
                                 <CloseIcon/>
                             </IconButton>
                             <Typography variant="title" color="inherit">
-                                {e.nom + " " + e.prenom + " " + e.ddn}
+                                {eleve.nom + " " + eleve.prenom + " " + eleve.ddn}
                             </Typography>
                         </Toolbar>
                     </AppBar>
                     <div className={classes.appbarh}/>
                     <DialogContent>
+                        {this.state.require && <FormHelperText error>{this.state.require}</FormHelperText>}
                         <FormGroup>
                             <TextField
                                 multiline
                                 fullWidth
                                 label="Rédiger votre rapport"
                                 rows="10"
-                                helperText="Une fois votre rapport rédigé, appuyez sur le boutton Mail"/>
+                                helperText="Une fois votre rapport rédigé, appuyez sur le boutton Mail"
+                                onChange={this.handleRapport}/>
                         </FormGroup>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={this._annuler}>Annuler</Button>
                         <Button variant='raised' onClick={this._mail} color="primary">
-                            Mail to boss
+                            Envoyer !
                         </Button>
                     </DialogActions>
                 </Dialog>

@@ -18,7 +18,7 @@ import Paper from 'material-ui/Paper';
 
 import ProfAdd from './ProfAdd'
 import EleveAdd from './EleveAdd'
-import EleveList from "./EleveListe"
+import EleveListe from "./EleveListe"
 import Login from "./Login"
 import About from './About'
 import Profile from './Profile'
@@ -69,14 +69,8 @@ class EleveApp extends Component {
         super(props);
 
         this.state = {
-            firestore: props
-                .firebase
-                .firestore(),
-            fireauth: props
-                .firebase
-                .auth(),
             /** la liste des eleves */
-            liste: fakelist,
+            liste: [],
 
             anchormenuappbar: null,
 
@@ -87,21 +81,14 @@ class EleveApp extends Component {
     };
 
     componentWillMount() {
+        const {firebase}=this.props
         if (usefire) {
             var listedb = this.state.liste;
 
             //recuperation de la reference de la liste d'eleves dans firebase
-            var elevesref = this
-                .state
-                .firestore
-                .collection('eleves');
-
-            var usersref = this
-                .state
-                .firestore
-                .collection('users');
-
-            elevesref
+            firebase
+                .firestore()
+                .collection('eleves')
                 .get()
                 .then((snapshot) => {
                     snapshot.forEach((doc) => {
@@ -125,17 +112,15 @@ class EleveApp extends Component {
     }
 
     componentDidMount() {
-
+        const {firebase} = this.props
         //check si on est signined ou non pour référence : auth = !!user,
-        this
-            .state
-            .fireauth
+        firebase
+            .auth()
             .onAuthStateChanged((user) => {
                 if (user) {
                     // User is signed in. on va chercher le statut du user
-                    this
-                        .state
-                        .firestore
+                    firebase
+                        .firestore()
                         .collection('users')
                         .doc(user.uid)
                         .get()
@@ -144,10 +129,10 @@ class EleveApp extends Component {
                                 console.log('No such document!');
                             } else {
                                 // user signined + entré users dans firestore, on update user avec le statut
-                                user.statut = doc
-                                    .data()
-                                    .statut;
-                                console.log(user.statut)
+                                let d = doc.data();
+                                user.statut = d.statut;
+                                user.nom = d.nom;
+                                user.prenom=d.prenom
                             }
                         })
                         .catch(err => {
@@ -163,14 +148,14 @@ class EleveApp extends Component {
     }
 
     _ajoutEleve = e => {
+        const {firebase}=this.props
         if (e !== null) { //check si on a un eleve à ajouter
 
             var lol = this.state.liste
             if (usefire) {
                 /**update sur firebase + recupération de l'id*/
-                this
-                    .state
-                    .firestore
+                firebase
+                    .firestore()
                     .collection('eleves')
                     .add(e)
                     .then((doc) => {
@@ -190,13 +175,13 @@ class EleveApp extends Component {
     };
 
     _deleteEleve = e => {
+        const {firebase}=this.props
         /**on retire eleve-id de firebaseref et de la liste */
         if (e !== null) {
             var lol = this.state.liste
             if (usefire) {
-                this
-                    .state
-                    .firestore
+                firebase
+                    .firestore()
                     .collection('eleves')
                     .doc(e.id)
                     .delete()/** delete de eleve de firestore */
@@ -224,27 +209,14 @@ class EleveApp extends Component {
         }
     }
 
-    _login = (email, password) => {
-        if (usefire) {
-            /** ici on devrait une authntification avec firebase */
-            this
-                .state
-                .fireauth
-                .signInWithEmailAndPassword(email, password)
-                .catch(function (error) {
-                    var errorCode = error.code;
-                    var errorMessage = error.message;
-                    alert(errorMessage);
-                });
-        }
-    }
+    
 
     _logout = () => {
+        const {firebase}=this.props
         if (usefire) {
             /** ici on devrait une authntification avec firebase */
-            this
-                .state
-                .fireauth
+            firebase
+                .fireauth()
                 .signOut()
                 .catch(function (error) {
                     // Handle Errors here.
@@ -263,7 +235,7 @@ class EleveApp extends Component {
     };
 
     render() {
-        const {classes} = this.props;
+        const {classes,firebase} = this.props;
         const {auth, user, anchormenuappbar} = this.state;
         const openmenuappbar = Boolean(anchormenuappbar);
 
@@ -277,7 +249,7 @@ class EleveApp extends Component {
                                     <List>
                                         <div className={classes.appbarh}>
                                             {auth && <Typography
-                                                variant="subheadline"
+                                                variant="subheading"
                                                 color="inherit"
                                                 className={classes.textcenter}>
                                                 {`${user.statut}`}
@@ -369,7 +341,8 @@ class EleveApp extends Component {
                                         <Route
                                             path="/"
                                             exact={true}
-                                            render={(props) => (<EleveList
+                                            render={(props) => (<EleveListe
+                                                firebase={this.props.firebase}
                                             liste={this.state.liste}
                                             deleteeleve={this._deleteEleve}
                                             user={user}/>)}/>
@@ -378,10 +351,10 @@ class EleveApp extends Component {
                                             render={() => (<EleveAdd ajout={this._ajoutEleve} auth={auth}/>)}/>
                                         <Route
                                             path="/addprof"
-                                            render={() => (<ProfAdd ajout={this._ajoutEleve} auth={auth}/>)}/>
+                                            render={() => (<ProfAdd ajout={this._ajoutProf} auth={auth}/>)}/>
                                         <Route
                                             path="/login"
-                                            render={() => (<Login firebase={this.props.firebase} login={this._login} auth={auth}/>)}/>
+                                            render={() => (<Login firebase={firebase} auth={auth}/>)}/>
                                         <Route path="/profile" render={() => (<Profile user={user}/>)}/>
                                         <Route path="/about" component={About}/>
                                     </Switch>

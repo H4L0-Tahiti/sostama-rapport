@@ -63,12 +63,21 @@ class Login extends Component {
 
     _login = () => {
         //ajout json eleve dans le fichier
-        if ((this.state.email === "") || (this.state.password === "")) {
+        const {firebase} = this.props
+        const {email, password} = this.state;
+        if ((email === "") || (password === "")) {
             this.setState({require: "Veuillez remplir les champs requis."});
         } else {
-            this
-                .props/** retour vers EleveApp */
-                .login(this.state.email, this.state.password);
+            /** ici on devrait une authntification avec firebase */
+            firebase
+                .auth()
+                .signInWithEmailAndPassword(email, password)
+                .catch(function (error) {
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    alert(errorMessage);
+                });
+
         }
     };
     render() {

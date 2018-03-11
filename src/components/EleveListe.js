@@ -80,7 +80,7 @@ export class EleveItem extends Component {
     };
     /**RENDER */
     render() {
-        const {eleve,user} = this.props;
+        const {eleve,user,firebase} = this.props;
         return (
             <div>
                 <ListItem button onClick={this._rapportOpen}>
@@ -98,14 +98,16 @@ export class EleveItem extends Component {
                 </ListItem>
                 {!!user && ((user.statut=="admin")||(user.statut=="prof")) && this.state.rapportopen && <EleveRapport
                     open={this.state.rapportopen}
+                    firebase={firebase}
                     eleve={eleve}
+                    user={user}
                     onClose={this._rapportClose}/>}
             </div>
         )
     }
 }
 
-export default class EleveList extends Component { //fuse
+class EleveListe extends Component { //fuse
     fuseoptions = {
         keys: [
             'nom', 'prenom'
@@ -175,7 +177,7 @@ export default class EleveList extends Component { //fuse
 
     //RENDER
     render() {
-        const {user}=this.props
+        const {user,firebase}=this.props
         return (
             <div>
                 <Grid container direction="column" alignItems="stretch">
@@ -198,6 +200,7 @@ export default class EleveList extends Component { //fuse
                                                 .visibleids
                                                 .has(eleve.id + "") && (<EleveItem
                                                     key={"eleve-" + eleve.id}
+                                                    firebase={firebase}
                                                     eleve={eleve}
                                                     deleteeleve={this.handleDeleteEleve}
                                                     user={user} />)}
@@ -212,3 +215,6 @@ export default class EleveList extends Component { //fuse
         );
     }
 }
+
+
+export default withStyles(Style)(EleveListe)
