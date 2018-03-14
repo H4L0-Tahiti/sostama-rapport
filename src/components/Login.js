@@ -120,7 +120,7 @@ class Login extends Component {
                             </FormGroup>
                             <Router>
                                 <DialogActions>
-                                    <Button variant="raised" color="primary" onClick={this._login}>Login !</Button>
+                                    <Button variant="raised" type="submit" color="primary" onClick={this._login} autoFocus>Login !</Button>
                                 </DialogActions>
                             </Router>
                         </div>}

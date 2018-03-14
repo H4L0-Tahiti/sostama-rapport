@@ -15,6 +15,8 @@ import Save from 'material-ui-icons/Save';
 import Grid from 'material-ui/Grid';
 import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} from 'material-ui/Dialog';
 
+import Alert from '../reuseables/Alert'
+
 import {Redirect} from "react-router-dom";
 
 import Slide from 'material-ui/transitions/Slide';
@@ -115,7 +117,6 @@ class EleveAdd extends Component { //ajout eleve dasn le fichie
                                 id="ajoutddn"
                                 label="Date de naissance"
                                 type="date"
-                                defaultValue="2000-01-01"
                                 margin="normal"
                                 value={this.state.ddn}
                                 onChange={this.handleDDN}
@@ -131,17 +132,10 @@ class EleveAdd extends Component { //ajout eleve dasn le fichie
                             Ajouter
                         </Button>
                     </DialogActions>
-                    {this.state.alert && <Dialog
-                        id="alert-add"
+                    {this.state.alert && <Alert
                         open={this.state.alert}
-                        transition={Transition}
-                        onClose={this._closeAlert}>
-                        <DialogContent>
-                            <DialogContentText>
-                                {"L'élève " + this.state.nom + " " + this.state.prenom + " a été ajouté"}
-                            </DialogContentText>
-                        </DialogContent>
-                    </Dialog>}
+                        onClose={this._closeAlert}
+                        text={"L'élève " + this.state.nom + " " + this.state.prenom + " a été ajouté"}/>}
                 </Grid>
             </div>
         )

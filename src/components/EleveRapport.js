@@ -13,6 +13,9 @@ import AppBar from 'material-ui/AppBar/AppBar';
 import Toolbar from 'material-ui/Toolbar/Toolbar';
 import Typography from 'material-ui/Typography/Typography';
 
+import Alert from '../reuseables/Alert'
+
+
 import Slide from 'material-ui/transitions/Slide';
 
 function Transition(props) {
@@ -26,8 +29,12 @@ class EleveRapport extends Component {
 
         this.state = {
             rapport: "",
-            require: ""
+            require: "",
+            alert:false,
         }
+    }
+    _closeAlert = () => {
+        this.setState({alert: false})
     }
 
     _annuler = () => {
@@ -35,6 +42,10 @@ class EleveRapport extends Component {
             .props //callbaaaack pour ramener le state au parent
             .onClose()
     };
+
+    _reset = () =>{
+        this.setState({rapport:"",require:""})
+    }
 
     _mail = () => {
         //envoyerle rapport dans firebase
@@ -48,7 +59,7 @@ class EleveRapport extends Component {
             let r={};
             r.texte=rapport;
             r.date = this.props.firebase.firestore.FieldValue.serverTimestamp();
-            r.eleve=eleve.id;
+            r.eleve=`${eleve.nom} ${eleve.prenom}`;
 
             firebase.firestore()
                 .collection('rapports')
@@ -57,9 +68,9 @@ class EleveRapport extends Component {
                 .add(r)
                 
 
-        this
-            .props
-            .onClose()
+            
+        this.setState({alert: true});
+        this._reset()
         }
 
     };
@@ -73,7 +84,7 @@ class EleveRapport extends Component {
             <div>
                 <Dialog
                     open={this.props.open}
-                    onClose={this.handleClose}
+                    onClose={this._annuler}
                     fullScreen={true}
                     transition={Transition}>
                     <AppBar>
@@ -87,7 +98,7 @@ class EleveRapport extends Component {
                         </Toolbar>
                     </AppBar>
                     <div className={classes.appbarh}/>
-                    <DialogContent>
+                    <DialogContent className={classes.dialogcontentpadding}>
                         {this.state.require && <FormHelperText error>{this.state.require}</FormHelperText>}
                         <FormGroup>
                             <TextField
@@ -96,6 +107,7 @@ class EleveRapport extends Component {
                                 label="Rédiger votre rapport"
                                 rows="10"
                                 helperText="Une fois votre rapport rédigé, appuyez sur le boutton Mail"
+                                value={this.state.rapport}
                                 onChange={this.handleRapport}/>
                         </FormGroup>
                     </DialogContent>
@@ -106,6 +118,7 @@ class EleveRapport extends Component {
                         </Button>
                     </DialogActions>
                 </Dialog>
+                {this.state.alert && <Alert open={this.state.alert} onClose={this._closeAlert} text={`Votre rapport a été envoyé !`}/>}
             </div>
         )
     }

@@ -13,8 +13,7 @@ import IconButton from 'material-ui/IconButton';
 import DeleteIcon from 'material-ui-icons/Delete';
 import Grid from 'material-ui/Grid';
 
-import {Route, Switch, Link, HashRouter as Router} from "react-router-dom";
-
+import {Redirect} from "react-router-dom";
 import EleveRapport from './EleveRapport'
 
 class DeleteDialog extends Component {
@@ -80,12 +79,11 @@ export class EleveItem extends Component {
     };
     /**RENDER */
     render() {
-        const {eleve,user,firebase} = this.props;
+        const {eleve, user, firebase} = this.props;
         return (
             <div>
                 <ListItem button onClick={this._rapportOpen}>
-                    <ListItemText primary={eleve.nom + " " + eleve.prenom}/>
-                    {!!user && (user.statut=="admin") && <ListItemSecondaryAction>
+                    <ListItemText primary={eleve.nom + " " + eleve.prenom}/> {!!user && (user.statut === "admin") && <ListItemSecondaryAction>
                         <IconButton size="small" onClick={this._deleteOpen}>
                             <DeleteIcon/>
                         </IconButton>
@@ -96,7 +94,7 @@ export class EleveItem extends Component {
                             deleteEleve={this._deleteEleve}/>}
                     </ListItemSecondaryAction>}
                 </ListItem>
-                {!!user && ((user.statut=="admin")||(user.statut=="prof")) && this.state.rapportopen && <EleveRapport
+                {!!user && ((user.statut === "admin") || (user.statut === "prof")) && this.state.rapportopen && <EleveRapport
                     open={this.state.rapportopen}
                     firebase={firebase}
                     eleve={eleve}
@@ -107,7 +105,9 @@ export class EleveItem extends Component {
     }
 }
 
-class EleveListe extends Component { //fuse
+class EleveListe extends Component {
+
+    //fuse
     fuseoptions = {
         keys: [
             'nom', 'prenom'
@@ -177,11 +177,11 @@ class EleveListe extends Component { //fuse
 
     //RENDER
     render() {
-        const {user,firebase}=this.props
+        const {user, firebase} = this.props
         return (
             <div>
                 <Grid container direction="column" alignItems="stretch">
-
+                    {!user && <Redirect to="/login"/>}
                     <DialogTitle>Liste des élèves</DialogTitle>
                     <DialogContent>
                         <FormGroup>
@@ -190,24 +190,22 @@ class EleveListe extends Component { //fuse
                                 type="search"
                                 placeholder="Recherche..."
                                 onChange={this.handleChange}/>
-                            <Router>
-                                <List>
-                                    {this
-                                        .props
-                                        .liste
-                                        .map((eleve) => <div key={"elevediv-" + eleve.id}>{this
-                                                .state
-                                                .visibleids
-                                                .has(eleve.id + "") && (<EleveItem
-                                                    key={"eleve-" + eleve.id}
-                                                    firebase={firebase}
-                                                    eleve={eleve}
-                                                    deleteeleve={this.handleDeleteEleve}
-                                                    user={user} />)}
+                            <List>
+                                {this
+                                    .props
+                                    .liste
+                                    .map((eleve) => <div key={"elevediv-" + eleve.id}>{this
+                                            .state
+                                            .visibleids
+                                            .has(eleve.id + "") && (<EleveItem
+                                                key={"eleve-" + eleve.id}
+                                                firebase={firebase}
+                                                eleve={eleve}
+                                                deleteeleve={this.handleDeleteEleve}
+                                                user={user}/>)}
 
-                                        </div>)}
-                                </List>
-                            </Router>
+                                    </div>)}
+                            </List>
                         </FormGroup>
                     </DialogContent>
                 </Grid>
@@ -215,6 +213,5 @@ class EleveListe extends Component { //fuse
         );
     }
 }
-
 
 export default withStyles(Style)(EleveListe)

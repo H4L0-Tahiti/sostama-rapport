@@ -22,6 +22,7 @@ import EleveListe from "./EleveListe"
 import Login from "./Login"
 import About from './About'
 import Profile from './Profile'
+import RapportListe from './RapportListe'
 
 import Grid from 'material-ui/Grid';
 import Reboot from 'material-ui/Reboot';
@@ -136,7 +137,7 @@ class EleveApp extends Component {
                             }
                         })
                         .catch(err => {
-                            console.log('Error getting document', err);
+                            console.log('Error getting document here', err);
                         })
                         .then(() => this.setState({auth: true, user: user}))
 
@@ -216,7 +217,7 @@ class EleveApp extends Component {
         if (usefire) {
             /** ici on devrait une authntification avec firebase */
             firebase
-                .fireauth()
+                .auth()
                 .signOut()
                 .catch(function (error) {
                     // Handle Errors here.
@@ -255,22 +256,22 @@ class EleveApp extends Component {
                                                 {`${user.statut}`}
                                             </Typography>}
                                         </div><Divider/>
-                                        <Link to="/" className={classes.noUnderline}>
+                                        {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Liste"/>
                                             </ListItem>
-                                        </Link>
-                                        {auth && (user.statut == "admin" || user.statut == "prof") && <Link to="/rapports" className={classes.noUnderline}>
+                                        </Link>}
+                                        {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/rapports" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Rapports"/>
                                             </ListItem>
-                                        </Link>}
-                                        <Divider/> {auth && (user.statut == "admin" || user.statut == "prof") && <Link to="/addeleve" className={classes.noUnderline}>
+                                        </Link>}<Divider/>
+                                         {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/addeleve" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Ajouter Elève"/>
                                             </ListItem>
                                         </Link>}
-                                        {auth && user.statut == "admin" && <Link to="/addprof" className={classes.noUnderline}>
+                                        {auth && user.statut ==="admin" && <Link to="/addprof" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Ajouter Professeur"/>
                                             </ListItem>
@@ -357,6 +358,7 @@ class EleveApp extends Component {
                                             render={() => (<Login firebase={firebase} auth={auth}/>)}/>
                                         <Route path="/profile" render={() => (<Profile user={user}/>)}/>
                                         <Route path="/about" component={About}/>
+                                        <Route path="/rapports" render={() => (<RapportListe firebase={firebase} user={user}/>)}/>
                                     </Switch>
                                 </div>
                             </Grid>
