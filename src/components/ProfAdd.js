@@ -115,7 +115,6 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
                                 id="ajoutddn"
                                 label="Date de naissance"
                                 type="date"
-                                defaultValue="2000-01-01"
                                 margin="normal"
                                 value={this.state.ddn}
                                 onChange={this.handleDDN}

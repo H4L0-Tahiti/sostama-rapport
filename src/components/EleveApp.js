@@ -72,6 +72,7 @@ class EleveApp extends Component {
         this.state = {
             /** la liste des eleves */
             liste: [],
+            rapports: [],
 
             anchormenuappbar: null,
 
@@ -81,37 +82,6 @@ class EleveApp extends Component {
 
     };
 
-    componentWillMount() {
-        const {firebase}=this.props
-        if (usefire) {
-            var listedb = this.state.liste;
-
-            //recuperation de la reference de la liste d'eleves dans firebase
-            firebase
-                .firestore()
-                .collection('eleves')
-                .get()
-                .then((snapshot) => {
-                    snapshot.forEach((doc) => {
-                        let d = doc.data();
-                        let e = {
-                            id: doc.id,
-                            nom: d.nom,
-                            prenom: d.prenom,
-                            ddn: d.ddn
-                        }
-                        listedb.push(e);
-                    });
-                })
-                .catch((err) => {
-                    console.log('Error getting documents', err);
-                })
-                .then(() => {
-                    this.setState({liste: listedb});
-                })
-        }
-    }
-
     componentDidMount() {
         const {firebase} = this.props
         //check si on est signined ou non pour référence : auth = !!user,
@@ -119,9 +89,46 @@ class EleveApp extends Component {
             .auth()
             .onAuthStateChanged((user) => {
                 if (user) {
-                    // User is signed in. on va chercher le statut du user
-                    firebase
-                        .firestore()
+                    // User is signed in. on va chercher le statut du user dans firestore (et pas
+                    // auth)
+                    /* un user sur firebase, on a accès à
+                     * nom,prenom,statut via firestore (users)
+                     * id,email via auth
+                     */
+                    let firestore = firebase.firestore()
+
+                    //recuperation de la liste d'eleves dans firebase
+                    var liste = [];
+
+                    firestore
+                        .collection('eleves')
+                        .get()
+                        .then((snapshot) => {
+                            snapshot.forEach((doc) => {
+                                let d = doc.data();
+                                let e = {
+                                    id: doc.id,
+                                    nom: d.nom,
+                                    prenom: d.prenom,
+                                    ddn: d.ddn
+                                }
+                                liste.push(e);
+                            });
+                        })
+                        .catch((err) => {
+                            console.log('Error getting documents', err);
+                        })
+
+                        //recup la liste de rapports sur firebase
+                        var rapports = []
+                    var users = []
+                    var usertemp = {
+                        nom: null,
+                        prenom: null,
+                        statut: null
+                    }
+
+                    firestore
                         .collection('users')
                         .doc(user.uid)
                         .get()
@@ -133,23 +140,108 @@ class EleveApp extends Component {
                                 let d = doc.data();
                                 user.statut = d.statut;
                                 user.nom = d.nom;
-                                user.prenom=d.prenom
+                                user.prenom = d.prenom
+
                             }
                         })
                         .catch(err => {
                             console.log('Error getting document here', err);
                         })
-                        .then(() => this.setState({auth: true, user: user}))
+                        .then(() => {
+                            /** user admin voit les rapports de tout les users, user pas admin voit uniquement ses propres rapports */
+                            if (user.statut === "admin") {
+                                //user est admin recup d'une liste de tous les users
+                                firestore
+                                    .collection("users")
+                                    .get()
+                                    .then((snapusers) => {
+                                        snapusers.forEach((doc) => {
+                                            let data = doc.data()
+                                            let u = {
+                                                uid: doc.id,
+                                                nom: data.nom,
+                                                prenom: data.prenom
+                                            }
+                                            users.push(u);
+                                        })
+                                    })
+                                    .catch(err => {
+                                        console.log('Error getting document here', err);
+                                    })
+                                    .then(() => {
+                                        users.map((u) => {
+                                            firestore
+                                                .collection('rapports')
+                                                .doc(u.uid)
+                                                .collection("messages")
+                                                .get()
+                                                .then((snapshot) => {
+                                                    snapshot.forEach((doc) => {
+                                                        let d = doc.data();
+                                                        let r = {
+                                                            id: doc.id,
+                                                            date: d.date,
+                                                            eleve: d.eleve,
+                                                            user: {
+                                                                nom: u.nom,
+                                                                prenom: u.prenom,
+                                                                email: u.email
+                                                            },
+                                                            texte: d.texte
+
+                                                        }
+                                                        rapports.push(r);
+                                                    });
+                                                })
+                                                .catch((err) => {
+                                                    console.log('Error getting rapports', err);
+                                                })
+                                        })
+                                    })
+                            } else {
+                                //user n'est pas admin, il voit que lui même
+                                firestore
+                                    .collection('rapports')
+                                    .doc(user.uid)
+                                    .collection("messages")
+                                    .get()
+                                    .then((snapshot) => {
+                                        snapshot.forEach((doc) => {
+                                            let d = doc.data();
+                                            let r = {
+                                                id: doc.id,
+                                                date: d.date,
+                                                eleve: d.eleve,
+                                                user: {
+                                                    nom: user.nom,
+                                                    prenom: user.prenom,
+                                                    email: user.email
+                                                },
+                                                texte: d.texte
+
+                                            }
+                                            rapports.push(r);
+                                        });
+                                    })
+                                    .catch((err) => {
+                                        console.log('Error getting rapports', err);
+                                    })
+                            }
+                        })
+                        .then(() => {
+                            this.setState({auth: true, user: user, liste: liste, rapports: rapports});
+                        })
 
                 } else {
                     // No user is signed in.
-                    this.setState({auth: false, user: null})
+                    this.setState({auth: false, user: null, liste: [], rapports: []})
                 }
             });
+
     }
 
     _ajoutEleve = e => {
-        const {firebase}=this.props
+        const {firebase} = this.props
         if (e !== null) { //check si on a un eleve à ajouter
 
             var lol = this.state.liste
@@ -176,44 +268,48 @@ class EleveApp extends Component {
     };
 
     _deleteEleve = e => {
-        const {firebase}=this.props
+        const {firebase} = this.props
+        const {user} = this.state
         /**on retire eleve-id de firebaseref et de la liste */
         if (e !== null) {
-            var lol = this.state.liste
-            if (usefire) {
-                firebase
-                    .firestore()
-                    .collection('eleves')
-                    .doc(e.id)
-                    .delete()/** delete de eleve de firestore */
-                    .then(() => {
-                        let index = lol.indexOf(e);
-                        lol.splice(index, 1);/** delete de la liste locale */
-                        this.setState({liste: lol});
-                    });
-            } else {
-
-                let index = lol.indexOf(e);
-                lol.splice(index, 1);/** delete de la liste locale */
-                this.setState({liste: lol});
-            }
-
+            firebase
+                .firestore()
+                .collection('eleves')
+                .doc(e.id)
+                .delete()/** delete de eleve de firestore */
+                .then(() => {
+                    let lol = this.state.liste
+                    let index = lol.indexOf(e);
+                    lol.splice(index, 1);/** delete de la liste locale */
+                    this.setState({liste: lol});
+                });
         };
 
     }
 
-    _switchAuth = () => {
-        if (this.state.auth) {
-            this.setState({auth: false})
-        } else {
-            this.setState({auth: true})
-        }
+    _deleteRapport = r => {
+        const {firebase} = this.props
+        const {user} = this.state
+        //retirer r de firestore
+        firebase
+            .firestore()
+            .collection('rapports')
+            .doc(user.uid)
+            .collection("messages")
+            .doc(r.id)
+            .delete()
+            .then(() => {
+                //retirer r de state
+                let lol = this.state.rapports
+                let index = lol.indexOf(r);
+                lol.splice(index, 1);/** delete de la liste locale */
+                this.setState({rapports: lol});
+            })
+
     }
 
-    
-
     _logout = () => {
-        const {firebase}=this.props
+        const {firebase} = this.props
         if (usefire) {
             /** ici on devrait une authntification avec firebase */
             firebase
@@ -236,8 +332,8 @@ class EleveApp extends Component {
     };
 
     render() {
-        const {classes,firebase} = this.props;
-        const {auth, user, anchormenuappbar} = this.state;
+        const {classes, firebase} = this.props;
+        const {auth, user, anchormenuappbar, liste, rapports} = this.state;
         const openmenuappbar = Boolean(anchormenuappbar);
 
         return (
@@ -249,14 +345,10 @@ class EleveApp extends Component {
                                 <Paper>
                                     <List>
                                         <div className={classes.appbarh}>
-                                            {auth && <Typography
-                                                variant="subheading"
-                                                color="inherit"
-                                                className={classes.textcenter}>
+                                            {auth && <Typography variant="subheading" color="inherit" className={classes.textcenter}>
                                                 {`${user.statut}`}
                                             </Typography>}
-                                        </div><Divider/>
-                                        {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/" className={classes.noUnderline}>
+                                        </div><Divider/> {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Liste"/>
                                             </ListItem>
@@ -265,13 +357,12 @@ class EleveApp extends Component {
                                             <ListItem button>
                                                 <ListItemText primary="Rapports"/>
                                             </ListItem>
-                                        </Link>}<Divider/>
-                                         {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/addeleve" className={classes.noUnderline}>
+                                        </Link>}<Divider/> {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/addeleve" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Ajouter Elève"/>
                                             </ListItem>
                                         </Link>}
-                                        {auth && user.statut ==="admin" && <Link to="/addprof" className={classes.noUnderline}>
+                                        {auth && user.statut === "admin" && <Link to="/addprof" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Ajouter Professeur"/>
                                             </ListItem>
@@ -343,8 +434,8 @@ class EleveApp extends Component {
                                             path="/"
                                             exact={true}
                                             render={(props) => (<EleveListe
-                                                firebase={this.props.firebase}
-                                            liste={this.state.liste}
+                                            firebase={firebase}
+                                            liste={liste}
                                             deleteeleve={this._deleteEleve}
                                             user={user}/>)}/>
                                         <Route
@@ -353,12 +444,16 @@ class EleveApp extends Component {
                                         <Route
                                             path="/addprof"
                                             render={() => (<ProfAdd ajout={this._ajoutProf} auth={auth}/>)}/>
-                                        <Route
-                                            path="/login"
-                                            render={() => (<Login firebase={firebase} auth={auth}/>)}/>
+                                        <Route path="/login" render={() => (<Login firebase={firebase} auth={auth}/>)}/>
                                         <Route path="/profile" render={() => (<Profile user={user}/>)}/>
                                         <Route path="/about" component={About}/>
-                                        <Route path="/rapports" render={() => (<RapportListe firebase={firebase} user={user}/>)}/>
+                                        <Route
+                                            path="/rapports"
+                                            render={() => (<RapportListe
+                                            rapports={rapports}
+                                            deleterapport={this._deleteRapport}
+                                            firebase={firebase}
+                                            user={user}/>)}/>
                                     </Switch>
                                 </div>
                             </Grid>

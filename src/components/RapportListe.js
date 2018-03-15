@@ -18,6 +18,7 @@ import Typography from 'material-ui/Typography/Typography';
 import Grid from 'material-ui/Grid';
 
 import DeleteDialog from '../reuseables/DeleteDialog'
+import Alert from '../reuseables/Alert'
 
 import {Redirect} from "react-router-dom";
 
@@ -57,12 +58,15 @@ class Rapport extends Component {
                                 <CloseIcon/>
                             </IconButton>
                             <Typography variant="title" color="inherit">
-                                {`${rapport.eleve} ${rapport.date}`}
+                                {`${rapport.eleve}`}
                             </Typography>
                         </Toolbar>
                     </AppBar>
                     <div className={classes.appbarh}/>
                     <DialogContent className={classes.dialogcontentpadding}>
+                        <Typography variant="subheading" color="inherit">
+                            {`par ${rapport.user.nom} ${rapport.user.prenom} le ${rapport.date}`}
+                        </Typography>
                         <FormHelperText error></FormHelperText>
                         <DialogContentText>
                             {`${rapport.texte}`}
@@ -106,7 +110,9 @@ class RapportItem extends Component {
     }
 
     _deleteAction = () => {
-        this.props.deleteAction(this.props.rapport)
+        this
+            .props
+            .deleteAction(this.props.rapport)
         this._deleteClose()
     };
 
@@ -115,7 +121,8 @@ class RapportItem extends Component {
         return (
             <div>
                 <ListItem button onClick={this._rapportOpen}>
-                    <ListItemText primary={`${rapport.eleve} ${rapport.date}`}/> {!!user && (user.statut === "admin") && <ListItemSecondaryAction>
+                    <ListItemText
+                        primary={`${rapport.eleve} par ${rapport.user.nom} le ${rapport.date}`}/> {!!user && (user.statut === "admin") && <ListItemSecondaryAction>
                         <IconButton size="small" onClick={this._deleteOpen}>
                             <DeleteIcon/>
                         </IconButton>
@@ -139,72 +146,44 @@ class RapportItem extends Component {
 }
 
 class RapportListe extends Component {
+    //fuse
+    fuseoptions = {
+        keys: ['eleve','user.nom','user.prenom'],
+        shouldSort: true
+    };
+
     constructor(props) {
         super(props);
 
         this.state = {
-            rapports: []
+            visibles: props.rapports,
+            filtre: "",
+            fuse: new Fuse(props.rapports, this.fuseoptions)
         }
     }
 
-    _filtreProf = e => {}
+    _filtre = e => {
+        const {fuse} = this.state
 
-    _filtreEleve = e => {}
+        let result = fuse.search(`${e.target.value} `)
+        /** l'espace à la fin est important pour éviter
+         * que la recherche soit vide et donc aucune liste affiché 
+         * si on efface le filtre        
+          */
 
-    _deleterapport = r => {
-        const {firebase, user} = this.props
-
-        //retirer r de firestore
-        firebase
-            .firestore()
-            .collection('rapports')
-            .doc(user.uid)
-            .collection("messages")
-            .doc(r.id)
-            .delete()
-            .then(() => {
-                //retirer r de state
-                let lol = this.state.rapports
-                let index = lol.indexOf(r);
-                lol.splice(index, 1);/** delete de la liste locale */
-                this.setState({rapports: lol});
-            })
+        this.setState({visibles: result})
 
     }
 
-    componentDidMount() {
-        //recup la liste de rapports sur firebase
-        const {firebase, user} = this.props
-        var rapports = []
-        firebase
-            .firestore()
-            .collection('rapports')
-            .doc(user.uid)
-            .collection("messages")
-            .get()
-            .then((snapshot) => {
-                snapshot.forEach((doc) => {
-                    let d = doc.data();
-                    let r = {
-                        id: doc.id,
-                        date: d.date,
-                        eleve: d.eleve,
-                        texte: d.texte
-                    }
-                    rapports.push(r);
-                });
-            })
-            .catch((err) => {
-                console.log('Error getting rapports', err);
-            })
-            .then(() => {
-                this.setState({rapports: rapports});
-            })
+    _deleterapport = r => {
+        this
+            .props
+            .deleterapport(r)
     }
 
     render() {
-        const {user, firebase, classes} = this.props
-        const {rapports} = this.state
+        const {rapports, user, firebase, classes} = this.props
+        const {visibles} = this.state
         return (
             <div>
                 <Grid container direction="column" alignItems="stretch">
@@ -213,23 +192,22 @@ class RapportListe extends Component {
                     <DialogContent>
                         <FormGroup>
                             <TextField
-                                id="recherche"
+                                id="rechercheeleve"
                                 type="search"
-                                placeholder="Filtre prof..."
-                                onChange={this._filtreProf}/>
-                            <TextField
-                                id="recherche"
-                                type="search"
-                                placeholder="Filtre eleve..."
-                                onChange={this._filtreEleve}/>
+                                placeholder="Recherche..."
+                                onChange={this._filtre}/>
                             <List>
                                 {rapports.map((rap) => <div key={"rapportdiv-" + rap.id}>
-                                    <RapportItem
+                                    {visibles.includes(rap) && <RapportItem
                                         rapport={rap}
                                         user={user}
                                         deleteAction={this._deleterapport}
-                                        classes={classes}/>
+                                        classes={classes}/>}
+
                                 </div>)}
+                                {visibles.length === 0 && <ListItem>
+                                    <ListItemText primary="Aucun résultat"/>
+                                </ListItem>}
                             </List>
                         </FormGroup>
                     </DialogContent>
