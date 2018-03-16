@@ -68,7 +68,7 @@ class Rapport extends Component {
                             {`par ${rapport.user.nom} ${rapport.user.prenom} le ${rapport.date}`}
                         </Typography>
                         <FormHelperText error></FormHelperText>
-                        <DialogContentText>
+                        <DialogContentText className={classes.textformat}>
                             {`${rapport.texte}`}
                         </DialogContentText>
                     </DialogContent>

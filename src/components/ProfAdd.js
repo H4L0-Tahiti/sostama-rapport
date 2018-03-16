@@ -15,6 +15,8 @@ import Save from 'material-ui-icons/Save';
 import Grid from 'material-ui/Grid';
 import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} from 'material-ui/Dialog';
 
+import Alert from '../reuseables/Alert'
+
 import {Redirect} from "react-router-dom";
 
 import Slide from 'material-ui/transitions/Slide';
@@ -31,7 +33,8 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
         this.state = {
             nom: "",
             prenom: "",
-            ddn: "",
+            email: "",
+            password: "",
             require: false,
             alert: false
         }
@@ -39,21 +42,13 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
     }
 
     _ajoutClose = e => {
-        //ajout json eleve dans le fichier
-        if ((this.state.nom === "") || (this.state.prenom === "") || (this.state.ddn === "")) {
+        const {nom,prenom,email,password,setState}=this.state
+        if ((nom === "") || (prenom === "") || (email === "") || (password === "")) {
             this.setState({require: "Veuillez remplir les champs requis."});
         } else {
-            let eleve = {
-                /** id sera rempli par firebase */
-                "nom": this.state.nom,
-                "prenom": this.state.prenom,
-                "ddn": this.state.ddn
-            };
+            //ajout du prof dans firebase
 
-            this
-                .props/** retour vers EleveApp */
-                .ajout(eleve);
-            this.setState({alert: true});
+            setState({alert:true})
         }
     };
 
@@ -65,12 +60,16 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
         this.setState({prenom: e.target.value})
     }
 
-    handleDDN = e => {
-        this.setState({ddn: e.target.value})
+    handleEmail = e => {
+        this.setState({email: e.target.value})
+    }
+
+    handlePrenom = e => {
+        this.setState({password: e.target.value})
     }
 
     _reset = () => {
-        this.setState({nom: "", prenom: "", ddn: "", require: false, alert: false})
+        this.setState({nom: "", prenom: "", email: "",password:"", require: false, alert: false})
     }
 
     _closeAlert = () => {
@@ -112,12 +111,23 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
                             }}/>
                             <TextField
                                 required
-                                id="ajoutddn"
-                                label="Date de naissance"
-                                type="date"
+                                id="ajoutemail"
+                                label="email"
+                                placeholder="email@sostama.com"
                                 margin="normal"
-                                value={this.state.ddn}
-                                onChange={this.handleDDN}
+                                value={this.state.email}
+                                onChange={this.handleEmail}
+                                InputLabelProps={{
+                                shrink: true
+                            }}/>
+                            <TextField
+                                required
+                                id="ajoutpassword"
+                                label="Mot de passe"
+                                placeholder="Mot de passe"
+                                margin="normal"
+                                value={this.state.password}
+                                onChange={this.handlePassword}
                                 InputLabelProps={{
                                 shrink: true
                             }}/>
@@ -130,17 +140,9 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
                             Ajouter
                         </Button>
                     </DialogActions>
-                    {this.state.alert && <Dialog
-                        id="alert-add"
-                        open={this.state.alert}
-                        transition={Transition}
-                        onClose={this._closeAlert}>
-                        <DialogContent>
-                            <DialogContentText>
-                                {"L'élève " + this.state.nom + " " + this.state.prenom + " a été ajouté"}
-                            </DialogContentText>
-                        </DialogContent>
-                    </Dialog>}
+                    {this.state.alert && <Alert open={this.state.alert}
+                        onClose={this._closeAlert}
+                        text={`Le professeur ${this.state.nom} ${this.state.prenom} a été ajouté`}/>}
                 </Grid>
             </div>
         )
