@@ -1,40 +1,23 @@
-import React, {Component} from 'react';
-import PropTypes from 'prop-types';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 
-import Dialog, {DialogContent, DialogContentText} from 'material-ui/Dialog';
+import Dialog, { DialogContent, DialogContentText } from "material-ui/Dialog";
 
-import Slide from 'material-ui/transitions/Slide';
+import Slide from "material-ui/transitions/Slide";
 
 function Transition(props) {
-    return <Slide direction="down" {...props}/>;
+  return <Slide direction="down" {...props} />;
 }
 
 export default class Alert extends Component {
-
-    constructor(props) {
-        super(props);
-        this.state={
-            text:props.text
-        }
-    }
-
-    _closeMe = ()=>{
-        this.setState({text:null})
-    }
-
-    render() {
-        const {open, onClose, text}=this.props;
-        return (
-            <Dialog
-                open={open}
-                transition={Transition}
-                onClose={onClose}>
-                <DialogContent>
-                    <DialogContentText>
-                        {`${text}`}
-                    </DialogContentText>
-                </DialogContent>
-            </Dialog>
-        )
-    }
+  render() {
+    const { open, onClose, text } = this.props;
+    return (
+      <Dialog open={open} transition={Transition} onClose={onClose}>
+        <DialogContent>
+          <DialogContentText>{`${text}`}</DialogContentText>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 }
