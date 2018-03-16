@@ -9,6 +9,9 @@
 # production
 /build
 
+# firebase private
+/firebase
+
 #story
 /src/stories
 /.storybook

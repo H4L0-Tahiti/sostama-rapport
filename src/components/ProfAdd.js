@@ -14,6 +14,7 @@ import Typography from 'material-ui/Typography/Typography';
 import Save from 'material-ui-icons/Save';
 import Grid from 'material-ui/Grid';
 import Dialog, {DialogActions, DialogContent, DialogContentText, DialogTitle} from 'material-ui/Dialog';
+import MenuItem from 'material-ui/Menu/MenuItem';
 
 import Alert from '../reuseables/Alert'
 
@@ -25,6 +26,7 @@ function Transition(props) {
     return <Slide direction="down" {...props}/>;
 }
 
+const statuts = ["prof", "admin"]
 class ProfAdd extends Component { //ajout eleve dasn le fichie
 
     constructor(props) {
@@ -35,6 +37,7 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
             prenom: "",
             email: "",
             password: "",
+            statut:"prof",
             require: false,
             alert: false
         }
@@ -42,13 +45,41 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
     }
 
     _ajoutClose = e => {
-        const {nom,prenom,email,password,setState}=this.state
+        const {admin} = this.props
+        const {nom, prenom, email, password} = this.state
+
         if ((nom === "") || (prenom === "") || (email === "") || (password === "")) {
             this.setState({require: "Veuillez remplir les champs requis."});
         } else {
-            //ajout du prof dans firebase
-
-            setState({alert:true})
+            // ajout du prof dans firebase ajout des credentials dans auth via firebase
+            // admin
+            admin
+                .auth()
+                .createUserWithEmailAndPassword(email, password)
+                .then(function (userRecord) {
+                    // on a userRecord.uid, il faut maintenant ajouter les champs dans firestore
+                    // ajout dans users l'ajout dans la collection rapports est inutile: ça se fera
+                    // tout seul avec le 1er rapport envoyé
+                    admin
+                        .firestore()
+                        .collection("users")
+                        .doc(userRecord.uid)
+                        .set({nom: nom, prenom: prenom, statut: "prof"})
+                        .then(() => {
+                            //tout est codé,signout car createuser singin automatiquement et alert
+                            admin
+                                .auth()
+                                .signOut();
+                            this.setState({alert: true})
+                        })
+                        .catch(function (error) {
+                            console.log("Error creating new user in firestore:", error);
+                        })
+                })
+                .catch(function (error) {
+                    console.log("Error creating new user:", error);
+                    alert(error.message);
+                });
         }
     };
 
@@ -64,17 +95,33 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
         this.setState({email: e.target.value})
     }
 
-    handlePrenom = e => {
+    handlePassword = e => {
         this.setState({password: e.target.value})
     }
+    handleStatut = e=>{
+        this.setState({statut:e.target.value})
+    }
+
+    handleChange = name => event => {
+        this.setState({
+          [name]: event.target.value,
+        });
+      };
 
     _reset = () => {
-        this.setState({nom: "", prenom: "", email: "",password:"", require: false, alert: false})
+        this.setState({
+            nom: "",
+            prenom: "",
+            email: "",
+            password: "",
+            require: false,
+            alert: false
+        })
     }
 
     _closeAlert = () => {
         this.setState({alert: false})
-        this._reset()
+        //this._reset()
     }
 
     render() {
@@ -131,6 +178,23 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
                                 InputLabelProps={{
                                 shrink: true
                             }}/>
+                            <TextField
+                                require
+                                id="select-statut"
+                                select
+                                label="Statut"
+                                value={this.state.statut}
+                                onChange={this.handleChange('statut')}
+                                margin="normal"
+                                InputLabelProps={{
+                                shrink: true
+                            }}>
+                                {statuts.map(option => (
+                                    <MenuItem key={option} value={option}>
+                                        {option}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </FormGroup>
                     </DialogContent>
                     <DialogActions>
@@ -140,13 +204,14 @@ class ProfAdd extends Component { //ajout eleve dasn le fichie
                             Ajouter
                         </Button>
                     </DialogActions>
-                    {this.state.alert && <Alert open={this.state.alert}
+                    {this.state.alert && <Alert
+                        open={this.state.alert}
                         onClose={this._closeAlert}
-                        text={`Le professeur ${this.state.nom} ${this.state.prenom} a été ajouté`}/>}
+                        text={`L'utilisateur ${this.state.nom} ${this.state.prenom} a été ajouté en tant que "${this.state.statut}"`}/>}
                 </Grid>
             </div>
         )
     }
 }
 
-export default withStyles(Style)(ProfAdd);
+export default withStyles(Style)(ProfAdd)

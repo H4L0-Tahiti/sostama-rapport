@@ -332,7 +332,7 @@ class EleveApp extends Component {
     };
 
     render() {
-        const {classes, firebase} = this.props;
+        const {classes, firebase, admin} = this.props;
         const {auth, user, anchormenuappbar, liste, rapports} = this.state;
         const openmenuappbar = Boolean(anchormenuappbar);
 
@@ -345,10 +345,11 @@ class EleveApp extends Component {
                                 <Paper>
                                     <List>
                                         <div className={classes.appbarh}>
-                                            {auth && <Typography variant="subheading" color="inherit" className={classes.textcenter}>
-                                                {`${user.statut}`}
-                                            </Typography>}
-                                        </div><Divider/> {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/" className={classes.noUnderline}>
+                                                {auth && <Typography variant="subheading" color="inherit" className={classes.textcenter}>
+                                                    {`${user.nom} ${user.prenom}\n${user.statut}`}
+                                                </Typography>}
+                                        </div>
+                                        <Divider/> {auth && (user.statut === "admin" || user.statut === "prof") && <Link to="/" className={classes.noUnderline}>
                                             <ListItem button>
                                                 <ListItemText primary="Liste"/>
                                             </ListItem>
@@ -443,7 +444,7 @@ class EleveApp extends Component {
                                             render={() => (<EleveAdd ajout={this._ajoutEleve} auth={auth}/>)}/>
                                         <Route
                                             path="/addprof"
-                                            render={() => (<ProfAdd ajout={this._ajoutProf} auth={auth}/>)}/>
+                                            render={() => (<ProfAdd ajout={this._ajoutProf} auth={auth} admin={admin} firebase={firebase}/>)}/>
                                         <Route path="/login" render={() => (<Login firebase={firebase} auth={auth}/>)}/>
                                         <Route path="/profile" render={() => (<Profile user={user}/>)}/>
                                         <Route path="/about" component={About}/>

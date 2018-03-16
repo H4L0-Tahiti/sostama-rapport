@@ -25,11 +25,11 @@ const Style = theme => ({
         margin: 10,
     },
     appbarh: {
-        height: appbarheight,        
-        padding: 15,
+        height: appbarheight, 
     },
     textcenter: {
         textAlign: 'center',
+        whiteSpace: 'pre-line',
     },
     textformat: {
         whiteSpace: 'pre-line',

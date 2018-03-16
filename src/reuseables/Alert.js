@@ -13,6 +13,13 @@ export default class Alert extends Component {
 
     constructor(props) {
         super(props);
+        this.state={
+            text:props.text
+        }
+    }
+
+    _closeMe = ()=>{
+        this.setState({text:null})
     }
 
     render() {

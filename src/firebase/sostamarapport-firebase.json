@@ -1,0 +1,8 @@
+{
+    "apiKey": "AIzaSyDaACU0uVkmHgRYCLwtP8ZuDSqa67RIC_8",
+    "authDomain": "sostamarapport.firebaseapp.com",
+    "databaseURL": "https://sostamarapport.firebaseio.com",
+    "projectId": "sostamarapport",
+    "storageBucket": "sostamarapport.appspot.com",
+    "messagingSenderId": "484972558539"
+}
