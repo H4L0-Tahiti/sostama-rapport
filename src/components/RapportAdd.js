@@ -26,7 +26,7 @@ function Transition(props) {
   return <Slide direction="left" {...props} />;
 }
 
-class EleveRapport extends Component {
+class RapportAdd extends Component {
   constructor(props) {
     super(props);
 
@@ -130,4 +130,4 @@ class EleveRapport extends Component {
   }
 }
 
-export default withStyles(Style)(EleveRapport);
+export default withStyles(Style)(RapportAdd);

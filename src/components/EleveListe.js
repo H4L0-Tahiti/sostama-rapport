@@ -23,7 +23,7 @@ import DeleteIcon from "material-ui-icons/Delete";
 import Grid from "material-ui/Grid";
 
 import { Redirect } from "react-router-dom";
-import EleveRapport from "./EleveRapport";
+import RapportAdd from "./RapportAdd";
 
 class DeleteDialog extends Component {
   render() {
@@ -118,7 +118,7 @@ export class EleveItem extends Component {
         {!!user &&
           (user.statut === "admin" || user.statut === "prof") &&
           this.state.rapportopen && (
-            <EleveRapport
+            <RapportAdd
               open={this.state.rapportopen}
               firebase={firebase}
               eleve={eleve}

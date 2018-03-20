@@ -15,21 +15,27 @@ import {
   DialogTitle
 } from "material-ui/Dialog";
 
-import { Redirect } from "react-router-dom";
+import { Route, Switch, Link, HashRouter as Router } from "react-router-dom";
 
 class Page404 extends Component {
   render() {
     const { classes } = this.props;
     return (
       <div>
-        <Grid container direction="column" alignItems="stretch">
-          <DialogTitle>{`Vous vous êtes perdu :(`}</DialogTitle>
-          <DialogContent>
-            <DialogContentText className={classes.textformat}>
-              {`Essayer de retourner vers l'acceuil `}
-            </DialogContentText>
-          </DialogContent>
-        </Grid>
+        <Router>
+          <Grid container direction="column" alignItems="stretch">
+            <DialogTitle>{`Vous vous êtes perdu :(`}</DialogTitle>
+            <DialogContent>
+              <DialogContentText className={classes.textformat}>
+                {`Essayez de retourner vers `}
+                <Link to="/" className={classes.noUnderline}>
+                  l'acceuil
+                </Link>
+                {` !`}
+              </DialogContentText>
+            </DialogContent>
+          </Grid>
+        </Router>
       </div>
     );
   }

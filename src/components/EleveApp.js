@@ -28,14 +28,19 @@ import RapportListe from "./RapportListe";
 import ProfListe from "./ProfListe";
 
 import Grid from "material-ui/Grid";
-import Reboot from "material-ui/Reboot";
 import List, {
   ListItem,
   ListItemText,
   ListItemSecondaryAction
 } from "material-ui/List";
 
-import { Route, Switch, Link, HashRouter as Router } from "react-router-dom";
+import {
+  Route,
+  Switch,
+  Link,
+  NavLink,
+  HashRouter as Router
+} from "react-router-dom";
 
 const usefire = true;
 
@@ -439,52 +444,62 @@ class EleveApp extends Component {
                         <ListItemText primary="Blog" />
                       </ListItem>
                     </Link>
-                    {user &&
-                      (user.statut === "prof" ||
-                        user.statut === "admin" ||
-                        user.statut === "jedi") && (
-                        <div>
-                          <Link to="/eleves" className={classes.noUnderline}>
-                            <ListItem button>
-                              <ListItemText primary="Elèves" />
-                            </ListItem>
-                          </Link>
-                          <Link to="/rapports" className={classes.noUnderline}>
-                            <ListItem button>
-                              <ListItemText primary="Rapports" />
-                            </ListItem>
-                          </Link>
-                          <Link to="/addeleve" className={classes.noUnderline}>
-                            <ListItem button>
-                              <ListItemText primary="Ajouter Elève" />
-                            </ListItem>
-                          </Link>
-                        </div>
-                      )}
-                    {user &&
-                      (user.statut === "admin" || user.statut === "jedi") && (
-                        <div>
-                          <Paper>
-                            <Typography
-                              variant="subheading"
-                              color="inherit"
-                              className={classes.textcenter}
+                    {user && (
+                      <div>
+                        {["prof", "admin", "jedi"].includes(user.statut) && (
+                          <div>
+                            <NavLink
+                              to="/eleves"
+                              className={classes.link}
+                              activeClassName={classes.activelink}
                             >
-                              {`ADMIN`}
-                            </Typography>
-                          </Paper>
-                          <Link to="/profs" className={classes.noUnderline}>
-                            <ListItem button>
-                              <ListItemText primary="Professeurs" />
-                            </ListItem>
-                          </Link>
-                          <Link to="/addprof" className={classes.noUnderline}>
-                            <ListItem button>
-                              <ListItemText primary="Ajouter Professeur" />
-                            </ListItem>
-                          </Link>
-                        </div>
-                      )}
+                              <ListItem button>
+                                <ListItemText primary="Elèves" />
+                              </ListItem>
+                            </NavLink>
+                            <Link
+                              to="/rapports"
+                              className={classes.noUnderline}
+                            >
+                              <ListItem button>
+                                <ListItemText primary="Rapports" />
+                              </ListItem>
+                            </Link>
+                            <Link
+                              to="/addeleve"
+                              className={classes.noUnderline}
+                            >
+                              <ListItem button>
+                                <ListItemText primary="Ajouter Elève" />
+                              </ListItem>
+                            </Link>
+                          </div>
+                        )}
+                        {["admin", "jedi"].includes(user.statut) && (
+                          <div>
+                            <Paper className={classes.adminpaper}>
+                              <Typography
+                                variant="subheading"
+                                color="inherit"
+                                className={classes.textcenter}
+                              >
+                                {`ADMIN`}
+                              </Typography>
+                            </Paper>
+                            <Link to="/profs" className={classes.noUnderline}>
+                              <ListItem button>
+                                <ListItemText primary="Professeurs" />
+                              </ListItem>
+                            </Link>
+                            <Link to="/addprof" className={classes.noUnderline}>
+                              <ListItem button>
+                                <ListItemText primary="Ajouter Professeur" />
+                              </ListItem>
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <Divider />
                     <Link to="/about" className={classes.noUnderline}>
                       <ListItem button>
@@ -574,177 +589,87 @@ class EleveApp extends Component {
                     </Switch>
                   )}
                   {user && (
-                    <Switch id="routes_signin">
+                    <Switch id="routes-signin">
                       <Route
                         path="/login"
+                        exact
                         render={() => <Login firebase={firebase} user={user} />}
                       />
-                      <Route path="/" exact={true} render={() => <Blog />} />
-                      <Route path="/about" component={About} />
+                      <Route path="/" exact render={() => <Blog />} />
+                      <Route path="/about" exact component={About} />
                       <Route
                         path="/profile"
+                        exact
                         render={() => <Profile user={user} />}
                       />
+                      {["prof", "admin", "jedi"].includes(user.statut) && [
+                        <Route
+                          key="r-eleves"
+                          path="/eleves"
+                          exact={true}
+                          render={props => (
+                            <EleveListe
+                              firebase={firebase}
+                              liste={eleves}
+                              deleteeleve={this._deleteEleve}
+                              ajoutrapport={this._ajoutRapport}
+                              user={user}
+                            />
+                          )}
+                        />,
+                        <Route
+                          key="r-rapports"
+                          path="/rapports"
+                          render={() => (
+                            <RapportListe
+                              rapports={rapports.reverse()}
+                              deleterapport={this._deleteRapport}
+                              firebase={firebase}
+                              user={user}
+                            />
+                          )}
+                        />,
+                        <Route
+                          key="r-adddeleve"
+                          path="/addeleve"
+                          render={() => (
+                            <EleveAdd
+                              ajouteleve={this._ajoutEleve}
+                              user={user}
+                            />
+                          )}
+                        />
+                      ]}
+                      {["admin", "jedi"].includes(user.statut) && [
+                        <Route
+                          key="r-profs"
+                          path="/profs"
+                          render={() => (
+                            <ProfListe
+                              list={profs}
+                              delete={this._deleteProf}
+                              firebase={firebase}
+                              user={user}
+                            />
+                          )}
+                        />,
+                        <Route
+                          key="r-addprof"
+                          path="/addprof"
+                          render={() => (
+                            <ProfAdd
+                              addprof={this._addProf}
+                              user={user}
+                              admin={admin}
+                              firebase={firebase}
+                            />
+                          )}
+                        />
+                      ]}
+                      {user.statut === "jedi" && <div id="routes-jedi" />}
+                      <Route component={Page404} />
                     </Switch>
                   )}
-                  {user &&
-                    user.statut === "prof" && (
-                      <Switch id="routes_prof">
-                        <Route
-                          path="/eleves"
-                          exact={true}
-                          render={props => (
-                            <EleveListe
-                              firebase={firebase}
-                              liste={eleves}
-                              deleteeleve={this._deleteEleve}
-                              ajoutrapport={this._ajoutRapport}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/addeleve"
-                          render={() => (
-                            <EleveAdd
-                              ajouteleve={this._ajoutEleve}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/rapports"
-                          render={() => (
-                            <RapportListe
-                              rapports={rapports.reverse()}
-                              deleterapport={this._deleteRapport}
-                              firebase={firebase}
-                              user={user}
-                            />
-                          )}
-                        />
-                      </Switch>
-                    )}
-                  {user &&
-                    user.statut === "admin" && (
-                      <Switch id="routes_admin">
-                        <Route
-                          path="/eleves"
-                          exact={true}
-                          render={props => (
-                            <EleveListe
-                              firebase={firebase}
-                              liste={eleves}
-                              deleteeleve={this._deleteEleve}
-                              ajoutrapport={this._ajoutRapport}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/rapports"
-                          render={() => (
-                            <RapportListe
-                              rapports={rapports.reverse()}
-                              deleterapport={this._deleteRapport}
-                              firebase={firebase}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/addeleve"
-                          render={() => (
-                            <EleveAdd
-                              ajouteleve={this._ajoutEleve}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/profs"
-                          render={() => (
-                            <ProfListe
-                              list={profs}
-                              delete={this._deleteProf}
-                              firebase={firebase}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/addprof"
-                          render={() => (
-                            <ProfAdd
-                              addprof={this._addProf}
-                              user={user}
-                              admin={admin}
-                              firebase={firebase}
-                            />
-                          )}
-                        />
-                      </Switch>
-                    )}
-                  {user &&
-                    user.statut === "jedi" && (
-                      <Switch id="routes_jedi">
-                        <Route
-                          path="/eleves"
-                          exact={true}
-                          render={props => (
-                            <EleveListe
-                              firebase={firebase}
-                              liste={eleves}
-                              deleteeleve={this._deleteEleve}
-                              ajoutrapport={this._ajoutRapport}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/rapports"
-                          render={() => (
-                            <RapportListe
-                              rapports={rapports.reverse()}
-                              deleterapport={this._deleteRapport}
-                              firebase={firebase}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/addeleve"
-                          render={() => (
-                            <EleveAdd
-                              ajouteleve={this._ajoutEleve}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/profs"
-                          render={() => (
-                            <ProfListe
-                              list={profs}
-                              delete={this._deleteProf}
-                              firebase={firebase}
-                              user={user}
-                            />
-                          )}
-                        />
-                        <Route
-                          path="/addprof"
-                          render={() => (
-                            <ProfAdd
-                              addprof={this._addProf}
-                              user={user}
-                              admin={admin}
-                              firebase={firebase}
-                            />
-                          )}
-                        />
-                      </Switch>
-                    )}
                 </div>
               </Grid>
             </Grid>
