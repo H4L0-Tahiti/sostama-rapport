@@ -37,6 +37,26 @@ function Transition(props) {
   return <Slide direction="left" {...props} />;
 }
 
+const locale = "fr-FR";
+const dateoptions = {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric"
+};
+const dateoptionsList = {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric"
+};
+const dateoptionsRapport = {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric"
+};
+
 class Rapport extends Component {
   constructor(props) {
     super(props);
@@ -71,9 +91,11 @@ class Rapport extends Component {
           <div className={classes.appbarh} />
           <DialogContent className={classes.dialogcontentpadding}>
             <Typography variant="subheading" color="inherit">
-              {`par ${rapport.user.nom} ${rapport.user.prenom} le ${
+              {`par ${rapport.user.nom} ${rapport.user.prenom} le ${new Date(
                 rapport.date
-              }`}
+              ).toLocaleDateString(locale, dateoptions)} à ${new Date(
+                rapport.date
+              ).toLocaleTimeString(locale)}`}
             </Typography>
             <FormHelperText error />
             <DialogContentText className={classes.textformat}>
@@ -89,6 +111,7 @@ class Rapport extends Component {
   }
 }
 
+//MARK: rapportitem
 class RapportItem extends Component {
   constructor(props) {
     super(props);
@@ -128,10 +151,10 @@ class RapportItem extends Component {
       <div>
         <ListItem button onClick={this._rapportOpen}>
           <ListItemText
-            primary={`${rapport.eleve} par ${rapport.user.nom} le ${
+            primary={`${rapport.eleve} par ${rapport.user.nom} le ${new Date(
               rapport.date
-            }`}
-          />{" "}
+            ).toLocaleDateString(locale)}`}
+          />
           {!!user &&
             user.statut === "admin" && (
               <ListItemSecondaryAction>
@@ -166,6 +189,7 @@ class RapportItem extends Component {
   }
 }
 
+//MARK: rapportliste
 class RapportListe extends Component {
   //fuse
   fuseoptions = {

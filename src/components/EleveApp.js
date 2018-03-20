@@ -72,6 +72,7 @@ const fakelist = [
 const GRID_DRAWER_WIDTH = 2;
 const GRID_APP_WIDTH = 12 - GRID_DRAWER_WIDTH;
 
+//MARK: eleveapp
 class EleveApp extends Component {
   constructor(props) {
     super(props);
@@ -344,6 +345,7 @@ class EleveApp extends Component {
     this.setState({ anchormenuappbar: null });
   };
 
+  // MARK: render eleveapp
   render() {
     const { classes, firebase, admin } = this.props;
     const { user, anchormenuappbar, liste, rapports } = this.state;
@@ -357,7 +359,7 @@ class EleveApp extends Component {
               <Grid item xs={GRID_DRAWER_WIDTH}>
                 <Paper>
                   <List>
-                    <div className={classes.appbarh}>
+                    <Paper className={classes.appbarh}>
                       {user && (
                         <Typography
                           variant="subheading"
@@ -367,10 +369,9 @@ class EleveApp extends Component {
                           {`${user.nom} ${user.prenom}\n${user.statut}`}
                         </Typography>
                       )}
-                    </div>
+                    </Paper>
                     {user && (
                       <div>
-                        <Divider />
                         <Link to="/" className={classes.noUnderline}>
                           <ListItem button>
                             <ListItemText primary="Elèves" />
@@ -381,7 +382,6 @@ class EleveApp extends Component {
                             <ListItemText primary="Rapports" />
                           </ListItem>
                         </Link>
-
                         <Link to="/addeleve" className={classes.noUnderline}>
                           <ListItem button>
                             <ListItemText primary="Ajouter Elève" />
@@ -392,7 +392,15 @@ class EleveApp extends Component {
                     {user &&
                       (user.statut === "admin" || user.statut === "jedi") && (
                         <div>
-                          <Divider />
+                          <Paper>
+                            <Typography
+                              variant="subheading"
+                              color="inherit"
+                              className={classes.textcenter}
+                            >
+                              {`ADMIN`}
+                            </Typography>
+                          </Paper>
                           <ListItem button>
                             <ListItemText primary="Professeurs" />
                           </ListItem>
@@ -413,7 +421,7 @@ class EleveApp extends Component {
                 </Paper>
               </Grid>
               <Grid item xs={GRID_APP_WIDTH}>
-                <AppBar position="static" color="primary">
+                <AppBar position="static">
                   <Toolbar>
                     <Grid
                       container
