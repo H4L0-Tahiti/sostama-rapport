@@ -16,6 +16,8 @@ import Divider from "material-ui/Divider";
 
 import Paper from "material-ui/Paper";
 
+import Page404 from "./Page404";
+import Blog from "./Blog";
 import ProfAdd from "./ProfAdd";
 import EleveAdd from "./EleveAdd";
 import EleveListe from "./EleveListe";
@@ -23,6 +25,7 @@ import Login from "./Login";
 import About from "./About";
 import Profile from "./Profile";
 import RapportListe from "./RapportListe";
+import ProfListe from "./ProfListe";
 
 import Grid from "material-ui/Grid";
 import Reboot from "material-ui/Reboot";
@@ -79,8 +82,9 @@ class EleveApp extends Component {
 
     this.state = {
       /** la liste des eleves */
-      liste: [],
+      eleves: [],
       rapports: [],
+      profs: [],
 
       anchormenuappbar: null
 
@@ -103,7 +107,7 @@ class EleveApp extends Component {
         let firestore = firebase.firestore();
 
         //recuperation de la liste d'eleves dans firebase
-        var liste = [];
+        var eleves = [];
 
         firestore
           .collection("eleves")
@@ -117,8 +121,31 @@ class EleveApp extends Component {
                 prenom: d.prenom,
                 ddn: d.ddn
               };
-              liste.push(e);
+              eleves.push(e);
             });
+          })
+          .catch(err => {
+            console.log("Error getting documents", err);
+          });
+
+        //recupperation des profs dans firebase
+        var profs = [];
+
+        firestore
+          .collection("users")
+          .where("statut", "==", "prof")
+          .get()
+          .then(snapshot => {
+            snapshot.forEach(doc => {
+              let d = doc.data();
+              let p = {
+                id: doc.id,
+                nom: d.nom,
+                prenom: d.prenom
+              };
+              profs.push(p);
+            });
+            console.log(profs);
           })
           .catch(err => {
             console.log("Error getting documents", err);
@@ -233,13 +260,14 @@ class EleveApp extends Component {
           .then(() => {
             this.setState({
               user: user,
-              liste: liste,
+              eleves: eleves,
+              profs: profs,
               rapports: rapports
             });
           });
       } else {
         // No user is signed in.
-        this.setState({ user: null, liste: [], rapports: [] });
+        this.setState({ user: null, eleves: [], profs: [], rapports: [] });
       }
     });
   }
@@ -247,7 +275,7 @@ class EleveApp extends Component {
   _ajoutEleve = e => {
     const { firebase } = this.props;
 
-    var lol = this.state.liste;
+    var lol = this.state.eleves;
     /**update sur firebase + recupération de l'id*/
     firebase
       .firestore()
@@ -257,7 +285,7 @@ class EleveApp extends Component {
         e.id = doc.id;
         /** push sur liste local plutot que refaire get */
         lol.push(e);
-        this.setState({ liste: lol });
+        this.setState({ eleves: lol });
       });
   };
 
@@ -272,12 +300,46 @@ class EleveApp extends Component {
         .doc(e.id)
         .delete() /** delete de eleve de firestore */
         .then(() => {
-          let lol = this.state.liste;
+          let lol = this.state.eleves;
           let index = lol.indexOf(e);
           lol.splice(index, 1); /** delete de la liste locale */
-          this.setState({ liste: lol });
+          this.setState({ eleves: lol });
         });
     }
+  };
+
+  _addProf = p => {
+    let lol = this.state.profs;
+    lol.push(p);
+    this.setState({ profs: lol });
+  };
+
+  _deleteProf = p => {
+    const { firebase } = this.props;
+
+    //delete dans auth
+    /** ça devient compliqué xD */
+
+    //delete dans firestore
+    /** plutot que de delete le user on va changé son statut pour rendre inutilisable l'app */
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(p.id)
+      .update({
+        statut: null
+      })
+      .then(() => {
+        console.log("Document successfully written!");
+        //delete dans liste local
+        let lol = this.state.profs;
+        let index = lol.indexOf(p);
+        lol.splice(index, 1);
+        this.setState({ profs: lol });
+      })
+      .catch(function(error) {
+        console.error("Error writing document: ", error);
+      });
   };
 
   _ajoutRapport = r => {
@@ -348,7 +410,7 @@ class EleveApp extends Component {
   // MARK: render eleveapp
   render() {
     const { classes, firebase, admin } = this.props;
-    const { user, anchormenuappbar, liste, rapports } = this.state;
+    const { user, anchormenuappbar, eleves, rapports, profs } = this.state;
     const openmenuappbar = Boolean(anchormenuappbar);
 
     return (
@@ -366,29 +428,39 @@ class EleveApp extends Component {
                           color="inherit"
                           className={classes.textcenter}
                         >
-                          {`${user.nom} ${user.prenom}\n${user.statut}`}
+                          {`${user.nom} ${user.prenom} ${
+                            user.statut ? `\n ${user.statut}` : ""
+                          }`}
                         </Typography>
                       )}
                     </Paper>
-                    {user && (
-                      <div>
-                        <Link to="/" className={classes.noUnderline}>
-                          <ListItem button>
-                            <ListItemText primary="Elèves" />
-                          </ListItem>
-                        </Link>
-                        <Link to="/rapports" className={classes.noUnderline}>
-                          <ListItem button>
-                            <ListItemText primary="Rapports" />
-                          </ListItem>
-                        </Link>
-                        <Link to="/addeleve" className={classes.noUnderline}>
-                          <ListItem button>
-                            <ListItemText primary="Ajouter Elève" />
-                          </ListItem>
-                        </Link>
-                      </div>
-                    )}
+                    <Link to="/" className={classes.noUnderline}>
+                      <ListItem button>
+                        <ListItemText primary="Blog" />
+                      </ListItem>
+                    </Link>
+                    {user &&
+                      (user.statut === "prof" ||
+                        user.statut === "admin" ||
+                        user.statut === "jedi") && (
+                        <div>
+                          <Link to="/eleves" className={classes.noUnderline}>
+                            <ListItem button>
+                              <ListItemText primary="Elèves" />
+                            </ListItem>
+                          </Link>
+                          <Link to="/rapports" className={classes.noUnderline}>
+                            <ListItem button>
+                              <ListItemText primary="Rapports" />
+                            </ListItem>
+                          </Link>
+                          <Link to="/addeleve" className={classes.noUnderline}>
+                            <ListItem button>
+                              <ListItemText primary="Ajouter Elève" />
+                            </ListItem>
+                          </Link>
+                        </div>
+                      )}
                     {user &&
                       (user.statut === "admin" || user.statut === "jedi") && (
                         <div>
@@ -401,9 +473,11 @@ class EleveApp extends Component {
                               {`ADMIN`}
                             </Typography>
                           </Paper>
-                          <ListItem button>
-                            <ListItemText primary="Professeurs" />
-                          </ListItem>
+                          <Link to="/profs" className={classes.noUnderline}>
+                            <ListItem button>
+                              <ListItemText primary="Professeurs" />
+                            </ListItem>
+                          </Link>
                           <Link to="/addprof" className={classes.noUnderline}>
                             <ListItem button>
                               <ListItemText primary="Ajouter Professeur" />
@@ -489,58 +563,188 @@ class EleveApp extends Component {
                   </Toolbar>
                 </AppBar>
                 <div className={classes.space}>
-                  <Switch id="routes">
-                    <Route
-                      path="/"
-                      exact={true}
-                      render={props => (
-                        <EleveListe
-                          firebase={firebase}
-                          liste={liste}
-                          deleteeleve={this._deleteEleve}
-                          ajoutrapport={this._ajoutRapport}
-                          user={user}
+                  {!user && (
+                    <Switch id="routes_signout">
+                      <Route
+                        path="/login"
+                        render={() => <Login firebase={firebase} user={user} />}
+                      />
+                      <Route path="/" exact={true} render={() => <Blog />} />
+                      <Route path="/about" component={About} />
+                    </Switch>
+                  )}
+                  {user && (
+                    <Switch id="routes_signin">
+                      <Route
+                        path="/login"
+                        render={() => <Login firebase={firebase} user={user} />}
+                      />
+                      <Route path="/" exact={true} render={() => <Blog />} />
+                      <Route path="/about" component={About} />
+                      <Route
+                        path="/profile"
+                        render={() => <Profile user={user} />}
+                      />
+                    </Switch>
+                  )}
+                  {user &&
+                    user.statut === "prof" && (
+                      <Switch id="routes_prof">
+                        <Route
+                          path="/eleves"
+                          exact={true}
+                          render={props => (
+                            <EleveListe
+                              firebase={firebase}
+                              liste={eleves}
+                              deleteeleve={this._deleteEleve}
+                              ajoutrapport={this._ajoutRapport}
+                              user={user}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                    <Route
-                      path="/addeleve"
-                      render={() => (
-                        <EleveAdd ajouteleve={this._ajoutEleve} user={user} />
-                      )}
-                    />
-                    <Route
-                      path="/addprof"
-                      render={() => (
-                        <ProfAdd
-                          ajout={this._ajoutProf}
-                          user={user}
-                          admin={admin}
-                          firebase={firebase}
+                        <Route
+                          path="/addeleve"
+                          render={() => (
+                            <EleveAdd
+                              ajouteleve={this._ajoutEleve}
+                              user={user}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                    <Route
-                      path="/login"
-                      render={() => <Login firebase={firebase} user={user} />}
-                    />
-                    <Route
-                      path="/profile"
-                      render={() => <Profile user={user} />}
-                    />
-                    <Route path="/about" component={About} />
-                    <Route
-                      path="/rapports"
-                      render={() => (
-                        <RapportListe
-                          rapports={rapports.reverse()}
-                          deleterapport={this._deleteRapport}
-                          firebase={firebase}
-                          user={user}
+                        <Route
+                          path="/rapports"
+                          render={() => (
+                            <RapportListe
+                              rapports={rapports.reverse()}
+                              deleterapport={this._deleteRapport}
+                              firebase={firebase}
+                              user={user}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                  </Switch>
+                      </Switch>
+                    )}
+                  {user &&
+                    user.statut === "admin" && (
+                      <Switch id="routes_admin">
+                        <Route
+                          path="/eleves"
+                          exact={true}
+                          render={props => (
+                            <EleveListe
+                              firebase={firebase}
+                              liste={eleves}
+                              deleteeleve={this._deleteEleve}
+                              ajoutrapport={this._ajoutRapport}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/rapports"
+                          render={() => (
+                            <RapportListe
+                              rapports={rapports.reverse()}
+                              deleterapport={this._deleteRapport}
+                              firebase={firebase}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/addeleve"
+                          render={() => (
+                            <EleveAdd
+                              ajouteleve={this._ajoutEleve}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/profs"
+                          render={() => (
+                            <ProfListe
+                              list={profs}
+                              delete={this._deleteProf}
+                              firebase={firebase}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/addprof"
+                          render={() => (
+                            <ProfAdd
+                              addprof={this._addProf}
+                              user={user}
+                              admin={admin}
+                              firebase={firebase}
+                            />
+                          )}
+                        />
+                      </Switch>
+                    )}
+                  {user &&
+                    user.statut === "jedi" && (
+                      <Switch id="routes_jedi">
+                        <Route
+                          path="/eleves"
+                          exact={true}
+                          render={props => (
+                            <EleveListe
+                              firebase={firebase}
+                              liste={eleves}
+                              deleteeleve={this._deleteEleve}
+                              ajoutrapport={this._ajoutRapport}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/rapports"
+                          render={() => (
+                            <RapportListe
+                              rapports={rapports.reverse()}
+                              deleterapport={this._deleteRapport}
+                              firebase={firebase}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/addeleve"
+                          render={() => (
+                            <EleveAdd
+                              ajouteleve={this._ajoutEleve}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/profs"
+                          render={() => (
+                            <ProfListe
+                              list={profs}
+                              delete={this._deleteProf}
+                              firebase={firebase}
+                              user={user}
+                            />
+                          )}
+                        />
+                        <Route
+                          path="/addprof"
+                          render={() => (
+                            <ProfAdd
+                              addprof={this._addProf}
+                              user={user}
+                              admin={admin}
+                              firebase={firebase}
+                            />
+                          )}
+                        />
+                      </Switch>
+                    )}
                 </div>
               </Grid>
             </Grid>

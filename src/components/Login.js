@@ -51,7 +51,8 @@ class Login extends Component {
       callbacks: {
         // Avoid redirects after sign-in.
         signInSuccess: () => false
-      }
+      },
+      signInSuccessUrl: "../"
     };
 
     this.state = {

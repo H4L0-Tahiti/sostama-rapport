@@ -59,13 +59,15 @@ class ProfAdd extends Component {
     } else {
       // ajout du prof dans firebase ajout des credentials dans auth via firebase
       // admin
+      var p = { id: "", nom: nom, prenom: prenom };
       admin
         .auth()
         .createUserWithEmailAndPassword(email, password)
-        .then(function(userRecord) {
+        .then(userRecord => {
           // on a userRecord.uid, il faut maintenant ajouter les champs dans firestore
           // ajout dans users l'ajout dans la collection rapports est inutile: ça se fera
           // tout seul avec le 1er rapport envoyé
+          p.id = userRecord.uid;
           admin
             .firestore()
             .collection("users")
@@ -73,8 +75,9 @@ class ProfAdd extends Component {
             .set({ nom: nom, prenom: prenom, statut: "prof" })
             .then(() => {
               //tout est codé,signout car createuser singin automatiquement et alert
-              admin.auth().signOut();
+              this.props.addprof(p);
               this.setState({ alert: true });
+              admin.auth().signOut();
             })
             .catch(function(error) {
               console.log("Error creating new user in firestore:", error);
@@ -186,21 +189,23 @@ class ProfAdd extends Component {
                   shrink: true
                 }}
               />
-              <TextField
-                required
-                id="select-statut"
-                select
-                label="Statut"
-                value={this.state.statut}
-                onChange={this.handleChange("statut")}
-                margin="normal"
-                InputLabelProps={{
-                  shrink: true
-                }}
-              >
-                <MenuItem value="prof">prof</MenuItem>
-                <MenuItem value="admin">admin</MenuItem>
-              </TextField>
+              {user.statut === "jedi" && (
+                <TextField
+                  required
+                  id="select-statut"
+                  select
+                  label="Statut"
+                  value={this.state.statut}
+                  onChange={this.handleChange("statut")}
+                  margin="normal"
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                >
+                  <MenuItem value="prof">prof</MenuItem>
+                  <MenuItem value="admin">admin</MenuItem>
+                </TextField>
+              )}
             </FormGroup>
           </DialogContent>
           <DialogActions>

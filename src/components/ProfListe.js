@@ -45,8 +45,8 @@ const dateoptions = {
   day: "numeric"
 };
 
-//MARK:rapport
-class Rapport extends Component {
+//MARK:prof
+class Prof extends Component {
   constructor(props) {
     super(props);
 
@@ -58,7 +58,7 @@ class Rapport extends Component {
   };
 
   render() {
-    const { rapport, classes, user } = this.props;
+    const { item, classes, user } = this.props;
     return (
       <div>
         <Dialog
@@ -73,22 +73,15 @@ class Rapport extends Component {
                 <CloseIcon />
               </IconButton>
               <Typography variant="title" color="inherit">
-                {`${rapport.eleve}`}
+                {`${item.nom} ${item.prenom}`}
               </Typography>
             </Toolbar>
           </AppBar>
           <div className={classes.appbarh} />
           <DialogContent className={classes.dialogcontentpadding}>
-            <Typography variant="subheading" color="inherit">
-              {`par ${rapport.user.nom} ${rapport.user.prenom} le ${new Date(
-                rapport.date
-              ).toLocaleDateString(locale, dateoptions)} à ${new Date(
-                rapport.date
-              ).toLocaleTimeString(locale)}`}
-            </Typography>
             <FormHelperText error />
             <DialogContentText className={classes.textformat}>
-              {`${rapport.texte}`}
+              {`${item.nom} ${item.prenom}`}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -100,24 +93,24 @@ class Rapport extends Component {
   }
 }
 
-//MARK: rapportitem
-class RapportItem extends Component {
+//MARK: profitem
+class ProfItem extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      rapportopen: false,
+      itemopen: false,
       deleteopen: false
     };
   }
 
-  _rapportOpen = () => {
+  _itemOpen = () => {
     //utilise pou affiche la fiche élève
-    this.setState({ rapportopen: true });
+    this.setState({ itemopen: true });
   };
 
-  _rapportClose = () => {
-    this.setState({ rapportopen: false });
+  _itemClose = () => {
+    this.setState({ itemopen: false });
   };
 
   /** DELETE handlers */
@@ -130,20 +123,16 @@ class RapportItem extends Component {
   };
 
   _deleteAction = () => {
-    this.props.deleteAction(this.props.rapport);
+    this.props.delete(this.props.item);
     this._deleteClose();
   };
 
   render() {
-    const { rapport, user } = this.props;
+    const { item, user } = this.props;
     return (
       <div>
-        <ListItem button onClick={this._rapportOpen}>
-          <ListItemText
-            primary={`${rapport.eleve} par ${rapport.user.nom} le ${new Date(
-              rapport.date
-            ).toLocaleDateString(locale)}`}
-          />
+        <ListItem button onClick={this._itemOpen}>
+          <ListItemText primary={`${item.nom} ${item.prenom}`} />
           {!!user &&
             user.statut === "admin" && (
               <ListItemSecondaryAction>
@@ -155,21 +144,20 @@ class RapportItem extends Component {
                     open={this.state.deleteopen}
                     onClose={this._deleteClose}
                     deleteAction={this._deleteAction}
-                    prompt="Supprimer ce rapport?"
-                    title="Delete Rapport"
+                    prompt="Supprimer ce Professeur?"
                   />
                 )}
               </ListItemSecondaryAction>
             )}
         </ListItem>
         {!!user &&
-          (user.statut === "admin" || user.statut === "prof") &&
-          this.state.rapportopen && (
-            <Rapport
-              open={this.state.rapportopen}
-              rapport={rapport}
+          user.statut === "admin" &&
+          this.state.itemopen && (
+            <Prof
+              open={this.state.itemopen}
+              item={item}
               user={user}
-              onClose={this._rapportClose}
+              onClose={this._itemClose}
               {...this.props}
             />
           )}
@@ -178,21 +166,21 @@ class RapportItem extends Component {
   }
 }
 
-//MARK: rapportliste
-class RapportListe extends Component {
+//MARK: profliste
+class ProfListe extends Component {
   //fuse
   fuseoptions = {
-    keys: ["eleve", "user.nom", "user.prenom"],
+    keys: ["nom", "prenom"],
     shouldSort: true
   };
 
   constructor(props) {
     super(props);
-
+    console.log(props.list);
     this.state = {
-      visibles: props.rapports,
+      visibles: props.list,
       filtre: "",
-      fuse: new Fuse(props.rapports, this.fuseoptions)
+      fuse: new Fuse(props.list, this.fuseoptions)
     };
   }
 
@@ -208,12 +196,12 @@ class RapportListe extends Component {
     this.setState({ visibles: result });
   };
 
-  _deleterapport = r => {
-    this.props.deleterapport(r);
+  _delete = i => {
+    this.props.delete(i);
   };
 
   render() {
-    const { rapports, user, firebase, classes } = this.props;
+    const { list, user, firebase, classes } = this.props;
     const { visibles } = this.state;
     return (
       <div>
@@ -229,13 +217,13 @@ class RapportListe extends Component {
                 onChange={this._filtre}
               />
               <List>
-                {rapports.map(rap => (
-                  <div key={"rapportdiv-" + rap.id}>
-                    {visibles.includes(rap) && (
-                      <RapportItem
-                        rapport={rap}
+                {list.map(v => (
+                  <div key={"rapportdiv-" + v.id}>
+                    {visibles.includes(v) && (
+                      <ProfItem
+                        item={v}
                         user={user}
-                        deleteAction={this._deleterapport}
+                        delete={this._delete}
                         classes={classes}
                       />
                     )}
@@ -255,4 +243,4 @@ class RapportListe extends Component {
   }
 }
 
-export default withStyles(Style)(RapportListe);
+export default withStyles(Style)(ProfListe);
