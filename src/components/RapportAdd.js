@@ -17,6 +17,7 @@ import CloseIcon from "material-ui-icons/Close";
 import AppBar from "material-ui/AppBar/AppBar";
 import Toolbar from "material-ui/Toolbar/Toolbar";
 import Typography from "material-ui/Typography/Typography";
+import MenuItem from "material-ui/Menu/MenuItem";
 
 import Alert from "../reuseables/Alert";
 
@@ -26,6 +27,8 @@ function Transition(props) {
   return <Slide direction="left" {...props} />;
 }
 
+const matieres = ["Maths", "Français", "Anglais"];
+
 class RapportAdd extends Component {
   constructor(props) {
     super(props);
@@ -33,7 +36,7 @@ class RapportAdd extends Component {
     this.state = {
       rapport: "",
       matiere: "",
-      horaire: "",
+      date: "",
       require: "",
       alert: false
     };
@@ -48,21 +51,22 @@ class RapportAdd extends Component {
   };
 
   _reset = () => {
-    this.setState({ rapport: "", require: "" });
+    this.setState({ rapport: "", require: "", matiere: "", date: "" });
   };
 
   _mail = () => {
     //envoyerle rapport dans firebase
-    const { rapport } = this.state;
+    const { rapport, matiere, date } = this.state;
     const { firebase, user, eleve } = this.props;
 
-    if (rapport === "") {
+    if (rapport === "" || !matieres.includes(matiere) || date === "") {
       this.setState({ require: "Veuillez remplir les champs requis." });
     } else {
       //construction du json
       let r = {
         texte: rapport,
-        date: new Date().toString(),
+        matiere: matiere,
+        date: new Date(date).toString(),
         eleve: `${eleve.nom} ${eleve.prenom}`
       };
 
@@ -75,6 +79,10 @@ class RapportAdd extends Component {
 
   handleRapport = e => {
     this.setState({ rapport: e.target.value });
+  };
+
+  handleDate = e => {
+    this.setState({ date: new Date(e.target.value) });
   };
 
   handleChange = name => event => {
@@ -97,7 +105,7 @@ class RapportAdd extends Component {
                 <CloseIcon />
               </IconButton>
               <Typography variant="title" color="inherit">
-                {eleve.nom + " " + eleve.prenom + " " + eleve.ddn}
+                {eleve.nom + " " + eleve.prenom + " "}
               </Typography>
             </Toolbar>
           </AppBar>
@@ -108,23 +116,47 @@ class RapportAdd extends Component {
             )}
             <FormGroup>
               <TextField
+                select
+                required
                 label="Matière"
+                margin="normal"
                 value={this.state.matiere}
                 onChange={this.handleChange("matiere")}
-              />
+                className={classes.textfieldshort}
+                InputLabelProps={{
+                  shrink: true
+                }}
+              >
+                {matieres.map(mat => (
+                  <MenuItem key={`key-${mat}`} value={mat}>
+                    {mat}
+                  </MenuItem>
+                ))}
+              </TextField>
+
               <TextField
-                label="Horaire du cours"
-                value={this.state.horaire}
-                onChange={this.handleChange("horaire")}
+                type="datetime-local"
+                required
+                label="Date du cours"
+                margin="normal"
+                value={this.state.date}
+                onChange={this.handleChange("date")}
+                className={classes.textfieldshort}
+                InputLabelProps={{
+                  shrink: true
+                }}
               />
               <TextField
                 multiline
                 fullWidth
+                margin="normal"
                 label="Rédiger votre rapport"
                 rows="10"
-                helperText="Une fois votre rapport rédigé, appuyez sur le boutton Mail"
                 value={this.state.rapport}
-                onChange={this.handleRapport}
+                onChange={this.handleChange("rapport")}
+                InputLabelProps={{
+                  shrink: true
+                }}
               />
             </FormGroup>
           </DialogContent>

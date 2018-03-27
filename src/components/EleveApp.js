@@ -156,7 +156,6 @@ class EleveApp extends Component {
               };
               profs.push(p);
             });
-            console.log(profs);
           })
           .catch(err => {
             console.log("Error getting documents", err);
@@ -216,7 +215,7 @@ class EleveApp extends Component {
                       .collection("rapports")
                       .doc(u.uid)
                       .collection("messages")
-                      .orderBy("date")
+                      .orderBy("date", "desc")
                       .get()
                       .then(snapshot => {
                         snapshot.forEach(doc => {
@@ -224,6 +223,7 @@ class EleveApp extends Component {
                           let r = {
                             id: doc.id,
                             date: d.date,
+                            matiere: d.matiere,
                             eleve: d.eleve,
                             user: {
                               nom: u.nom,
@@ -245,7 +245,7 @@ class EleveApp extends Component {
                 .collection("rapports")
                 .doc(user.uid)
                 .collection("messages")
-                .orderBy("date")
+                .orderBy("date", "desc")
                 .get()
                 .then(snapshot => {
                   snapshot.forEach(doc => {
@@ -353,6 +353,7 @@ class EleveApp extends Component {
       });
   };
 
+  //MARK:ajoutraport
   _ajoutRapport = r => {
     const { firebase } = this.props;
     const { user } = this.state;
@@ -365,6 +366,7 @@ class EleveApp extends Component {
       .collection("messages")
       .add(r)
       .then(doc => {
+        //ajout sur liste locale
         r.id = doc.id;
         r.user = {
           nom: user.nom,
@@ -387,7 +389,7 @@ class EleveApp extends Component {
       .doc(r.id)
       .delete()
       .then(() => {
-        //retirer r de state
+        //retirer r de state liste locale
         let lol = this.state.rapports;
         let index = lol.indexOf(r);
         lol.splice(index, 1); /** delete de la liste locale */
@@ -430,7 +432,7 @@ class EleveApp extends Component {
           <div>
             <Grid container spacing={0}>
               <Grid item xs={GRID_DRAWER_WIDTH}>
-                <Paper>
+                <Paper id="drawer">
                   <List>
                     <Paper className={classes.appbarh}>
                       {user && (

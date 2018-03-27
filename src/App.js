@@ -21,9 +21,6 @@ firebase.auth().languageCode = "fr";
 admin.auth().languageCode = "fr";
 
 class App extends Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     return (
       <div>

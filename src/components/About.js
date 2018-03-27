@@ -21,6 +21,11 @@ TODO:
  - rapport : matière et date du cours
 - changement de mot de passe
 `;
+
+const ASK = `
+- quelles matières ajouter
+- ???
+`;
 class About extends Component {
   render() {
     const { classes } = this.props;
@@ -32,6 +37,7 @@ class About extends Component {
             <DialogContentText className={classes.textformat}>
               {ABOUT_TEXT}
               {TO_DO}
+              {ASK}
             </DialogContentText>
           </DialogContent>
         </Grid>

@@ -79,16 +79,17 @@ class Rapport extends Component {
           </AppBar>
           <div className={classes.appbarh} />
           <DialogContent className={classes.dialogcontentpadding}>
-            <Typography variant="subheading" color="inherit">
-              {`par ${rapport.user.nom} ${rapport.user.prenom} le ${new Date(
-                rapport.date
-              ).toLocaleDateString(locale, dateoptions)} à ${new Date(
-                rapport.date
-              ).toLocaleTimeString(locale)}`}
-            </Typography>
             <FormHelperText error />
             <DialogContentText className={classes.textformat}>
-              {`${rapport.texte}`}
+              {`Par ${rapport.user.nom} ${rapport.user.prenom}
+              Matière: ${rapport.matiere}
+              Le ${new Date(rapport.date).toLocaleDateString(
+                locale,
+                dateoptions
+              )} à ${new Date(rapport.date).toLocaleTimeString(locale)}
+              
+              
+              ${rapport.texte}`}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -182,7 +183,7 @@ class RapportItem extends Component {
 class RapportListe extends Component {
   //fuse
   fuseoptions = {
-    keys: ["eleve", "date", "user.nom", "user.prenom"],
+    keys: ["eleve", "date", "matiere", "user.nom", "user.prenom"],
     shouldSort: true
   };
 

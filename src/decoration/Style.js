@@ -18,7 +18,7 @@ const Style = theme => ({
   drawerPaper: {
     position: "relative",
     height: "100%",
-    width: 240
+    width: drawerWidth
   },
 
   space: {
@@ -26,6 +26,9 @@ const Style = theme => ({
   },
   appbarh: {
     height: appbarheight
+  },
+  textfieldshort: {
+    width: 200
   },
   textcenter: {
     textAlign: "center",
