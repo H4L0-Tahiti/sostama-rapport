@@ -53,6 +53,10 @@ class Prof extends Component {
     this.state = {};
   }
 
+  handleChange = name => event => {
+    this.setState({ [name]: event.target.value });
+  };
+
   _annuler = () => {
     this.props.onClose();
   };
@@ -81,7 +85,9 @@ class Prof extends Component {
           <DialogContent className={classes.dialogcontentpadding}>
             <FormHelperText error />
             <DialogContentText className={classes.textformat}>
-              {`${item.nom} ${item.prenom}`}
+              {`${item.nom} ${item.prenom}
+              ${item.email}
+              `}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -134,7 +140,7 @@ class ProfItem extends Component {
         <ListItem button onClick={this._itemOpen}>
           <ListItemText primary={`${item.nom} ${item.prenom}`} />
           {!!user &&
-            user.statut === "admin" && (
+            ["admin", "jedi"].includes(user.statut) && (
               <ListItemSecondaryAction>
                 <IconButton size="small" onClick={this._deleteOpen}>
                   <DeleteIcon />
@@ -151,7 +157,7 @@ class ProfItem extends Component {
             )}
         </ListItem>
         {!!user &&
-          user.statut === "admin" &&
+          ["admin", "jedi"].includes(user.statut) &&
           this.state.itemopen && (
             <Prof
               open={this.state.itemopen}
@@ -206,11 +212,11 @@ class ProfListe extends Component {
       <div>
         <Grid container direction="column" alignItems="stretch">
           {!user && <Redirect to="/" />}
-          <DialogTitle>Rapports</DialogTitle>
+          <DialogTitle>Professeurs</DialogTitle>
           <DialogContent>
             <FormGroup>
               <TextField
-                id="rechercheeleve"
+                id="filtre"
                 type="search"
                 placeholder="Recherche..."
                 onChange={this._filtre}

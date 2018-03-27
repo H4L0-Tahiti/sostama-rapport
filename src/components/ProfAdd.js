@@ -50,16 +50,21 @@ class ProfAdd extends Component {
     };
   }
 
+  //MARK:add
   _ajoutClose = e => {
     const { admin } = this.props;
-    const { nom, prenom, email, password } = this.state;
+    const { nom, prenom, email, password, statut } = this.state;
+
+    /**
+     * note: statut est la plupart du temps prof
+     */
 
     if (nom === "" || prenom === "" || email === "" || password === "") {
       this.setState({ require: "Veuillez remplir les champs requis." });
     } else {
       // ajout du prof dans firebase ajout des credentials dans auth via firebase
       // admin
-      var p = { id: "", nom: nom, prenom: prenom };
+      var p = { id: "", nom: nom, prenom: prenom, email: email };
       admin
         .auth()
         .createUserWithEmailAndPassword(email, password)
@@ -67,12 +72,21 @@ class ProfAdd extends Component {
           // on a userRecord.uid, il faut maintenant ajouter les champs dans firestore
           // ajout dans users l'ajout dans la collection rapports est inutile: ça se fera
           // tout seul avec le 1er rapport envoyé
+
+          //mise à jour display name dans admin auth
+          userRecord.updateProfile({
+            displayName: `${p.nom} ${p.prenom}`
+          });
+
+          //envoie de l'email de vérification histoire de
+          userRecord.sendEmailVerification();
+
           p.id = userRecord.uid;
           admin
             .firestore()
             .collection("users")
             .doc(userRecord.uid)
-            .set({ nom: nom, prenom: prenom, statut: "prof" })
+            .set({ nom: nom, prenom: prenom, email: email, statut: statut })
             .then(() => {
               //tout est codé,signout car createuser singin automatiquement et alert
               this.props.addprof(p);
@@ -84,8 +98,10 @@ class ProfAdd extends Component {
             });
         })
         .catch(function(error) {
-          console.log("Error creating new user:", error);
-          alert(error.message);
+          //erreur creation auth
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          alert(errorMessage);
         });
     }
   };

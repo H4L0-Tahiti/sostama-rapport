@@ -145,7 +145,7 @@ class RapportItem extends Component {
             ).toLocaleDateString(locale)}`}
           />
           {!!user &&
-            user.statut === "admin" && (
+            ["admin", "jedi"].includes(user.statut) && (
               <ListItemSecondaryAction>
                 <IconButton size="small" onClick={this._deleteOpen}>
                   <DeleteIcon />
@@ -163,7 +163,7 @@ class RapportItem extends Component {
             )}
         </ListItem>
         {!!user &&
-          (user.statut === "admin" || user.statut === "prof") &&
+          (["admin", "jedi"].includes(user.statut) || user.statut === "prof") &&
           this.state.rapportopen && (
             <Rapport
               open={this.state.rapportopen}
@@ -182,7 +182,7 @@ class RapportItem extends Component {
 class RapportListe extends Component {
   //fuse
   fuseoptions = {
-    keys: ["eleve", "user.nom", "user.prenom"],
+    keys: ["eleve", "date", "user.nom", "user.prenom"],
     shouldSort: true
   };
 

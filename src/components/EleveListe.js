@@ -99,7 +99,7 @@ export class EleveItem extends Component {
         <ListItem button onClick={this._rapportOpen}>
           <ListItemText primary={eleve.nom + " " + eleve.prenom} />{" "}
           {!!user &&
-            user.statut === "admin" && (
+            ["admin", "jedi"].includes(user.statut) && (
               <ListItemSecondaryAction>
                 <IconButton size="small" onClick={this._deleteOpen}>
                   <DeleteIcon />
@@ -116,7 +116,7 @@ export class EleveItem extends Component {
             )}
         </ListItem>
         {!!user &&
-          (user.statut === "admin" || user.statut === "prof") &&
+          ["admin", "jedi", "prof"].includes(user.statut) &&
           this.state.rapportopen && (
             <RapportAdd
               open={this.state.rapportopen}

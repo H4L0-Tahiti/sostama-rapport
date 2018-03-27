@@ -17,6 +17,8 @@ firebase.initializeApp(firebaseconfig);
 var admin = firebase.initializeApp(firebaseconfig, "admin");
 
 //<img src={logo} className="App-logo" alt="logo"/>
+firebase.auth().languageCode = "fr";
+admin.auth().languageCode = "fr";
 
 class App extends Component {
   constructor(props) {

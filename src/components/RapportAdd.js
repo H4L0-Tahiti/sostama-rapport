@@ -32,6 +32,8 @@ class RapportAdd extends Component {
 
     this.state = {
       rapport: "",
+      matiere: "",
+      horaire: "",
       require: "",
       alert: false
     };
@@ -74,6 +76,11 @@ class RapportAdd extends Component {
   handleRapport = e => {
     this.setState({ rapport: e.target.value });
   };
+
+  handleChange = name => event => {
+    this.setState({ [name]: event.target.value });
+  };
+
   render() {
     const { eleve, classes, user } = this.props;
     return (
@@ -100,6 +107,16 @@ class RapportAdd extends Component {
               <FormHelperText error>{this.state.require}</FormHelperText>
             )}
             <FormGroup>
+              <TextField
+                label="Matière"
+                value={this.state.matiere}
+                onChange={this.handleChange("matiere")}
+              />
+              <TextField
+                label="Horaire du cours"
+                value={this.state.horaire}
+                onChange={this.handleChange("horaire")}
+              />
               <TextField
                 multiline
                 fullWidth

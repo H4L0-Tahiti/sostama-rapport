@@ -52,7 +52,7 @@ class Login extends Component {
         // Avoid redirects after sign-in.
         signInSuccess: () => false
       },
-      signInSuccessUrl: "../"
+      signInSuccessUrl: "/"
     };
 
     this.state = {
@@ -89,6 +89,7 @@ class Login extends Component {
         });
     }
   };
+
   render() {
     const { classes, user, firebase } = this.props;
     return (
@@ -135,6 +136,10 @@ class Login extends Component {
             </FormGroup>
             <Router>
               <DialogActions>
+                <Link
+                  to="/resetpassword"
+                  className={classes.noUnderline}
+                >{`Mot de passe oublié ?`}</Link>
                 <Button
                   variant="raised"
                   type="submit"

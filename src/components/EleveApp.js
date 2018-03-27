@@ -26,6 +26,7 @@ import About from "./About";
 import Profile from "./Profile";
 import RapportListe from "./RapportListe";
 import ProfListe from "./ProfListe";
+import ResetPassword from "./ResetPassword";
 
 import Grid from "material-ui/Grid";
 import List, {
@@ -116,6 +117,8 @@ class EleveApp extends Component {
 
         firestore
           .collection("eleves")
+          .orderBy("nom")
+          .orderBy("prenom")
           .get()
           .then(snapshot => {
             snapshot.forEach(doc => {
@@ -138,6 +141,8 @@ class EleveApp extends Component {
 
         firestore
           .collection("users")
+          .orderBy("nom")
+          .orderBy("prenom")
           .where("statut", "==", "prof")
           .get()
           .then(snapshot => {
@@ -146,7 +151,8 @@ class EleveApp extends Component {
               let p = {
                 id: doc.id,
                 nom: d.nom,
-                prenom: d.prenom
+                prenom: d.prenom,
+                email: d.email
               };
               profs.push(p);
             });
@@ -185,7 +191,7 @@ class EleveApp extends Component {
           })
           .then(() => {
             /** user admin voit les rapports de tout les users, user pas admin voit uniquement ses propres rapports */
-            if (user.statut === "admin") {
+            if (["admin", "jedi"].includes(user.statut)) {
               //user est admin recup d'une liste de tous les users
               firestore
                 .collection("users")
@@ -465,14 +471,6 @@ class EleveApp extends Component {
                                 <ListItemText primary="Rapports" />
                               </ListItem>
                             </Link>
-                            <Link
-                              to="/addeleve"
-                              className={classes.noUnderline}
-                            >
-                              <ListItem button>
-                                <ListItemText primary="Ajouter Elève" />
-                              </ListItem>
-                            </Link>
                           </div>
                         )}
                         {["admin", "jedi"].includes(user.statut) && (
@@ -496,6 +494,30 @@ class EleveApp extends Component {
                                 <ListItemText primary="Ajouter Professeur" />
                               </ListItem>
                             </Link>
+                            <Link
+                              to="/addeleve"
+                              className={classes.noUnderline}
+                            >
+                              <ListItem button>
+                                <ListItemText primary="Ajouter Elève" />
+                              </ListItem>
+                            </Link>
+                          </div>
+                        )}
+                        {["jedi"].includes(user.statut) && (
+                          <div>
+                            <Paper className={classes.adminpaper}>
+                              <Typography
+                                variant="subheading"
+                                color="inherit"
+                                className={classes.textcenter}
+                              >
+                                {`JEDI`}
+                              </Typography>
+                            </Paper>
+                            <ListItem button>
+                              <ListItemText primary="Rien pour l'instant" />
+                            </ListItem>
                           </div>
                         )}
                       </div>
@@ -584,6 +606,10 @@ class EleveApp extends Component {
                         path="/login"
                         render={() => <Login firebase={firebase} user={user} />}
                       />
+                      <Route
+                        path="/resetpassword"
+                        render={() => <ResetPassword admin={admin} />}
+                      />
                       <Route path="/" exact={true} render={() => <Blog />} />
                       <Route path="/about" component={About} />
                     </Switch>
@@ -592,7 +618,6 @@ class EleveApp extends Component {
                     <Switch id="routes-signin">
                       <Route
                         path="/login"
-                        exact
                         render={() => <Login firebase={firebase} user={user} />}
                       />
                       <Route path="/" exact render={() => <Blog />} />
@@ -628,7 +653,9 @@ class EleveApp extends Component {
                               user={user}
                             />
                           )}
-                        />,
+                        />
+                      ]}
+                      {["admin", "jedi"].includes(user.statut) && [
                         <Route
                           key="r-adddeleve"
                           path="/addeleve"
@@ -638,9 +665,7 @@ class EleveApp extends Component {
                               user={user}
                             />
                           )}
-                        />
-                      ]}
-                      {["admin", "jedi"].includes(user.statut) && [
+                        />,
                         <Route
                           key="r-profs"
                           path="/profs"
